@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "388298698922",
+    "project_id": "customer-app-cad10",
+    "storage_bucket": "customer-app-cad10.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388298698922:android:f6c1812221012f28b0a0d3",
+        "android_client_info": {
+          "package_name": "com.customersingle.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkrc_R44PxJ9yFitNMWbp_IdTUiqYBpRs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388298698922:android:a71fd2c6b73fe285b0a0d3",
+        "android_client_info": {
+          "package_name": "com.the8thmiracle.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkrc_R44PxJ9yFitNMWbp_IdTUiqYBpRs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

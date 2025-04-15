@@ -1,0 +1,73 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services" // Firebase plugin
+}
+
+android {
+    namespace = "com.the8thmiracle.customer"
+    compileSdk = 35
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    signingConfigs {
+        release {
+            // Update the path below if needed. Using forward slashes works well on Windows.
+storeFile file("E:/The 8th miracle/Qatrat Kheir/QatratKheir/your_keystore_name.jks")
+
+            storePassword "the8thmiracle" // Replace with your actual store password
+            keyAlias "your_key_alias"           // Replace with your actual key alias
+            keyPassword "the8thmiracle"     // Replace with your actual key password
+        }
+    }
+
+    defaultConfig {
+        // Specify your unique Application ID
+        applicationId "com.the8thmiracle.customer"
+        minSdk = 23
+        targetSdk = 35
+        versionCode flutter.versionCode
+        versionName flutter.versionName
+
+        // Enable MultiDex if you're using a lot of dependencies
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        release {
+            // Use the release signing configuration for production builds
+            signingConfig signingConfigs.release
+            // Use ProGuard for release builds to optimize code
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+flutter {
+    source "../.."
+}
+
+dependencies {
+    // Firebase BOM (manages all Firebase dependencies versions)
+    implementation platform('com.google.firebase:firebase-bom:32.3.1')
+    
+    // Firebase dependencies
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-storage' // Optional for file uploads
+
+    // MultiDex support for apps with many methods
+    implementation 'androidx.multidex:multidex:2.0.1'
+}
