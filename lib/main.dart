@@ -66,10 +66,10 @@ void main() async {
 
 
   // Initialize Firebase only once.
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-    
-  );
+  
+
+
+
 
   // Set up HTTP overrides for native platforms.
   setupHttpOverrides();

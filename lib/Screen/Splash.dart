@@ -5,6 +5,7 @@ import 'package:customer/Provider/UserProvider.dart';
 import 'package:customer/Screen/HomePage.dart';
 import 'package:customer/app/routes.dart';
 import 'package:customer/utils/blured_router.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,19 +16,14 @@ import '../Helper/Color.dart';
 import '../Helper/Constant.dart';
 import '../Helper/Session.dart';
 import '../Helper/String.dart';
-import '../utils/blured_router.dart';
-import '../Provider/SettingProvider.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:customer/Screen/SignInUpAcc.dart';
-
+import 'SignInUpAcc.dart';
 
 class Splash extends StatefulWidget {
   const Splash({super.key});
+
   static route(RouteSettings settings) {
     return BlurredRouter(
-      builder: (context) {
-        return const Splash();
-      },
+      builder: (context) => const Splash(),
     );
   }
 
@@ -36,92 +32,116 @@ class Splash extends StatefulWidget {
 }
 
 class _SplashScreen extends State<Splash> {
-  bool from = false;
-       final PageController _pageController = PageController();
+  final PageController _pageController = PageController();
   AnimationController? buttonController;
 
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: [SystemUiOverlay.top],);
+        overlays: [SystemUiOverlay.top]);
     SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-      ),
+      const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
-    apiBaseHelper.postAPICall(getSettingApi, {}).then((value) {
-      isCityWiseDelivery = (value['data'] as Map)['system_settings'][0]
-              ['city_wise_deliverability'] ==
-          "1";
-      isFirebaseAuth = (value['data'] as Map)['authentication_settings'][0]
-              ['authentication_method'] ==
-          "firebase";
-    });
+
+    _initApp();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    buttonController?.dispose(); // ✅ Safe dispose
+    super.dispose();
+  }
+
+  Future<void> _initApp() async {
+    // ✅ Initialize Firebase safely
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+
+    // Fetch settings
+    final value = await apiBaseHelper.postAPICall(getSettingApi, {});
+    isCityWiseDelivery = (value['data'] as Map)['system_settings'][0]
+            ['city_wise_deliverability'] ==
+        "1";
+    isFirebaseAuth = (value['data'] as Map)['authentication_settings'][0]
+            ['authentication_method'] ==
+        "firebase";
+
+    // Set device token
+    await setToken();
+
+    // Move forward after delay
     startTime();
   }
- @override
-  void dispose() {
-    super.dispose();
-    _pageController.dispose();
-    buttonController!.dispose();
-    
-  }
+
   Future<void> setToken() async {
-    FirebaseMessaging.instance.getToken().then(
-      (token) async {
-        final SettingProvider settingsProvider =
-            Provider.of<SettingProvider>(context, listen: false);
-        final String getToken = await settingsProvider.getPrefrence(FCMTOKEN) ?? '';
-        print("fcm token****$token");
-        if (token != getToken && token != null) {
-          print("register token***$token");
-          registerToken(token);
-        }
-      },
-    );
+    FirebaseMessaging.instance.getToken().then((token) async {
+      final settingsProvider =
+          Provider.of<SettingProvider>(context, listen: false);
+      final storedToken =
+          await settingsProvider.getPrefrence(FCMTOKEN) ?? '';
+      if (token != null && token != storedToken) {
+        registerToken(token);
+      }
+    });
   }
 
   Future<void> registerToken(String? token) async {
-    final SettingProvider settingsProvider =
+    final settingsProvider =
         Provider.of<SettingProvider>(context, listen: false);
+
     final parameter = {
       FCM_ID: token,
     };
-    if (context.read<UserProvider>().userId != "") {
+
+    if (context.read<UserProvider>().userId.isNotEmpty) {
       parameter[USER_ID] = context.read<UserProvider>().userId;
     }
-    final Response response =
-        await post(updateFcmApi, body: parameter, headers: headers)
-            .timeout(const Duration(seconds: timeOut));
-    final getdata = json.decode(response.body);
-    print("param noti fcm***$parameter");
-    print("value notification****$getdata");
-    if (getdata['error'] == false) {
-      print("fcm token****$token");
-      settingsProvider.setPrefrence(FCMTOKEN, token!);
+
+    try {
+      final response = await post(updateFcmApi,
+              body: parameter, headers: headers)
+          .timeout(const Duration(seconds: timeOut));
+      final getdata = json.decode(response.body);
+
+      if (getdata['error'] == false && token != null) {
+        settingsProvider.setPrefrence(FCMTOKEN, token);
+      }
+    } catch (e) {
+      print("FCM token registration error: $e");
     }
+  }
+
+  startTime() async {
+    const duration = Duration(seconds: 2);
+    return Timer(duration, navigationPage);
+  }
+
+  Future<void> navigationPage() async {
+    Navigator.pushReplacementNamed(context, Routers.dashboardScreen);
   }
 
   @override
   Widget build(BuildContext context) {
     deviceHeight = MediaQuery.of(context).size.height;
     deviceWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: Stack(
         children: <Widget>[
-        Container(
-  width: double.infinity,
-  height: double.infinity,
-  color: Theme.of(context).colorScheme.primarytheme,
-  child: Center(
-    child: Image.asset(
-      'assets/images/logowhite.png', // Ensure the correct path and file extension
-      fit: BoxFit.contain, // Adjust based on your design needs
-    ),
-  ),
-),
-
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: Theme.of(context).colorScheme.primarytheme,
+            child: Center(
+              child: Image.asset(
+                'assets/images/logowhite.png',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
           Image.asset(
             'assets/images/doodle.png',
             fit: BoxFit.fill,
@@ -132,15 +152,4 @@ class _SplashScreen extends State<Splash> {
       ),
     );
   }
-
-  startTime() async {
-    const duration = Duration(seconds: 2);
-    return Timer(duration, navigationPage);
-  }
-
-  Future<void> navigationPage() async {
-  Navigator.pushReplacementNamed(context, Routers.dashboardScreen);
-}
-
- 
 }

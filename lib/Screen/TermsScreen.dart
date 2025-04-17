@@ -61,43 +61,42 @@ class _TermsAndConditionsState extends State<TermsAndConditions>
   }
 
   Future<void> getSetting() async {
-    _isNetworkAvail = await isNetworkAvailable();
-    if (_isNetworkAvail) {
-      try {
-        final parameter = {TYPE: TERM_COND};
-        final getdata = await apiBaseHelper.postAPICall(getSettingApi, parameter);
-        final bool error = getdata["error"];
-        if (!error) {
-          String rawContent = getdata["data"][TERM_COND][0].toString();
+  _isNetworkAvail = await isNetworkAvailable();
+  if (_isNetworkAvail) {
+    try {
+      Locale currentLocale = Localizations.localeOf(context);
+      final isArabic = currentLocale.languageCode == 'ar';
+      final contentKey = isArabic ? "${TERM_COND}_ar" : TERM_COND;
 
-          // Get current locale
-          Locale currentLocale = Localizations.localeOf(context);
-          if (currentLocale.languageCode != 'en') {
-            rawContent = await translateDynamicText(rawContent, currentLocale.languageCode);
-          }
+      final parameter = {TYPE: contentKey};
+      final getdata = await apiBaseHelper.postAPICall(getSettingApi, parameter);
+      final bool error = getdata["error"];
 
-          content = rawContent;
-        } else {
-          setSnackbar(getdata["message"], context);
-        }
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      } on TimeoutException catch (_) {
-        setSnackbar(getTranslated(context, 'somethingMSg')!, context);
+      if (!error) {
+        content = getdata["data"][contentKey][0].toString();
+      } else {
+        setSnackbar(getdata["message"], context);
+      }
+
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-    } else {
+    } on TimeoutException catch (_) {
+      setSnackbar(getTranslated(context, 'somethingMSg')!, context);
       setState(() {
-        _isNetworkAvail = false;
         _isLoading = false;
       });
     }
+  } else {
+    setState(() {
+      _isNetworkAvail = false;
+      _isLoading = false;
+    });
   }
+}
+
 
   Future<void> _playAnimation() async {
     try {

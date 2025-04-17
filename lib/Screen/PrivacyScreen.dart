@@ -62,42 +62,43 @@ class _PrivacyScreenState extends State<PrivacyScreen> with TickerProviderStateM
   }
 
   Future<void> getSetting() async {
-    _isNetworkAvail = await isNetworkAvailable();
-    if (_isNetworkAvail) {
-      try {
-        final parameter = {TYPE: widget.contentType};
-        final getdata = await apiBaseHelper.postAPICall(getSettingApi, parameter);
-        final bool error = getdata["error"];
-        if (!error) {
-          String rawContent = getdata["data"][widget.contentType][0].toString();
+  _isNetworkAvail = await isNetworkAvailable();
+  if (_isNetworkAvail) {
+    try {
+      Locale currentLocale = Localizations.localeOf(context);
+      final isArabic = currentLocale.languageCode == 'ar';
 
-          Locale currentLocale = Localizations.localeOf(context);
-          if (currentLocale.languageCode != 'en') {
-            rawContent = await translateDynamicText(rawContent, currentLocale.languageCode);
-          }
+      // Get content type key based on language
+      final contentKey = isArabic ? "${widget.contentType}_ar" : widget.contentType;
 
-          content = rawContent;
-        } else {
-          setSnackbar(getdata["message"], context);
-        }
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      } on TimeoutException catch (_) {
-        setSnackbar(getTranslated(context, 'somethingMSg')!, context);
+      final parameter = {TYPE: contentKey};
+      final getdata = await apiBaseHelper.postAPICall(getSettingApi, parameter);
+      final bool error = getdata["error"];
+
+      if (!error) {
+        content = getdata["data"][contentKey][0].toString();
+      } else {
+        setSnackbar(getdata["message"], context);
+      }
+
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-    } else {
+    } on TimeoutException catch (_) {
+      setSnackbar(getTranslated(context, 'somethingMSg')!, context);
       setState(() {
-        _isNetworkAvail = false;
         _isLoading = false;
       });
     }
+  } else {
+    setState(() {
+      _isNetworkAvail = false;
+      _isLoading = false;
+    });
   }
+}
 
   Future<void> _playAnimation() async {
     try {

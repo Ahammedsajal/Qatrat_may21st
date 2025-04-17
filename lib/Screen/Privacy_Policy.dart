@@ -14,6 +14,7 @@ import 'HomePage.dart';
 
 class PrivacyPolicy extends StatefulWidget {
   final String? title;
+
   static route(RouteSettings settings) {
     final Map? arguments = settings.arguments as Map?;
     return BlurredRouter(
@@ -26,6 +27,7 @@ class PrivacyPolicy extends StatefulWidget {
   }
 
   const PrivacyPolicy({super.key, this.title});
+
   @override
   State<StatefulWidget> createState() {
     return StatePrivacy();
@@ -38,12 +40,15 @@ class StatePrivacy extends State<PrivacyPolicy> with TickerProviderStateMixin {
   Animation? buttonSqueezeanimation;
   AnimationController? buttonController;
   bool _isNetworkAvail = true;
+
   @override
   void initState() {
     super.initState();
     getSetting();
     buttonController = AnimationController(
-        duration: const Duration(milliseconds: 2000), vsync: this,);
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
     buttonSqueezeanimation = Tween(
       begin: deviceWidth! * 0.7,
       end: 50.0,
@@ -53,16 +58,17 @@ class StatePrivacy extends State<PrivacyPolicy> with TickerProviderStateMixin {
         0.0,
         0.150,
       ),
-    ),);
+    ));
   }
-static Route route(RouteSettings settings) {
-  final Map? arguments = settings.arguments as Map?;
-  return CupertinoPageRoute(
-    builder: (context) => PrivacyPolicy(
-      title: arguments?['title'],
-    ),
-  );
-}
+
+  static Route route(RouteSettings settings) {
+    final Map? arguments = settings.arguments as Map?;
+    return CupertinoPageRoute(
+      builder: (context) => PrivacyPolicy(
+        title: arguments?['title'],
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -75,59 +81,66 @@ static Route route(RouteSettings settings) {
       await buttonController!.forward();
     } on TickerCanceled {
       return;
-
     }
   }
 
   Widget noInternet(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        noIntImage(),
-        noIntText(context),
-        noIntDec(context),
-        AppBtn(
-          title: getTranslated(context, 'TRY_AGAIN_INT_LBL'),
-          btnAnim: buttonSqueezeanimation,
-          btnCntrl: buttonController,
-          onBtnSelected: () async {
-            _playAnimation();
-            Future.delayed(const Duration(seconds: 2)).then((_) async {
-              _isNetworkAvail = await isNetworkAvailable();
-              if (_isNetworkAvail) {
-                Navigator.pushReplacement(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          noIntImage(),
+          noIntText(context),
+          noIntDec(context),
+          AppBtn(
+            title: getTranslated(context, 'TRY_AGAIN_INT_LBL'),
+            btnAnim: buttonSqueezeanimation,
+            btnCntrl: buttonController,
+            onBtnSelected: () async {
+              _playAnimation();
+              Future.delayed(const Duration(seconds: 2)).then((_) async {
+                _isNetworkAvail = await isNetworkAvailable();
+                if (_isNetworkAvail) {
+                  Navigator.pushReplacement(
                     context,
                     CupertinoPageRoute(
-                        builder: (BuildContext context) => super.widget,),);
-              } else {
-                await buttonController!.reverse();
-                if (mounted) {
-                  setState(() {
-                    getSetting();
-                  });
+                      builder: (BuildContext context) => super.widget,
+                    ),
+                  );
+                } else {
+                  await buttonController!.reverse();
+                  if (mounted) {
+                    setState(() {
+                      getSetting();
+                    });
+                  }
                 }
-              }
-            });
-          },
-        ),
-      ],),
+              });
+            },
+          ),
+        ],
+      ),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return _isLoading
-        ? Scaffold(
-            appBar: getSimpleAppBar(widget.title!, context
-            ),
-            body: getProgress(context),
-          )
-        : _isNetworkAvail
-            ? privacy != ""
-                ? Scaffold(
-                    appBar: getSimpleAppBar(widget.title!, context),
-                    body: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
+ Widget build(BuildContext context) {
+  return _isLoading
+      ? Scaffold(
+          appBar: getSimpleAppBar(widget.title!, context),
+          body: getProgress(context),
+        )
+      : _isNetworkAvail
+          ? privacy != ""
+              ? Scaffold(
+                  appBar: getSimpleAppBar(widget.title!, context),
+                  body: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Directionality(
+                        textDirection: getCurrentLang(context) == 'ar'
+                            ? TextDirection.rtl
+                            : TextDirection.ltr,
                         child: HtmlWidget(
                           privacy!,
                           onTapUrl: (String? url) async {
@@ -142,26 +155,32 @@ static Route route(RouteSettings settings) {
                               Text('$element error: $error'),
                           onLoadingBuilder:
                               (context, element, loadingProgress) =>
-                                  showCircularProgress(context, true,
-                                      Theme.of(context).primaryColor,),
+                                  showCircularProgress(
+                                      context,
+                                      true,
+                                      Theme.of(context).primaryColor),
                           textStyle: TextStyle(
-                              color: Theme.of(context).colorScheme.fontColor,),
+                            color: Theme.of(context).colorScheme.fontColor,
+                          ),
                         ),
                       ),
-                    ),)
-                : Scaffold(
-                    appBar: getSimpleAppBar(widget.title!, context),
-                    body: _isNetworkAvail
-                        ? const SizedBox.shrink()
-                        : noInternet(context),
-                  )
-            : Scaffold(
-                appBar: getSimpleAppBar(widget.title!, context),
-                body: _isNetworkAvail
-                    ? const SizedBox.shrink()
-                    : noInternet(context),
-              );
-  }
+                    ),
+                  ),
+                )
+              : Scaffold(
+                  appBar: getSimpleAppBar(widget.title!, context),
+                  body: _isNetworkAvail
+                      ? const SizedBox.shrink()
+                      : noInternet(context),
+                )
+          : Scaffold(
+              appBar: getSimpleAppBar(widget.title!, context),
+              body: _isNetworkAvail
+                  ? const SizedBox.shrink()
+                  : noInternet(context),
+            );
+}
+
 
   Future<void> getSetting() async {
     _isNetworkAvail = await isNetworkAvailable();
@@ -181,23 +200,29 @@ static Route route(RouteSettings settings) {
         } else if (widget.title == getTranslated(context, 'RETURN_PO_LBL')) {
           type = RETURN_POLICY;
         }
+
         final parameter = {TYPE: type};
-        apiBaseHelper.postAPICall(getSettingApi, parameter).then((getdata) {
-          final bool error = getdata["error"];
-          final String? msg = getdata["message"];
-          if (!error) {
-            privacy = getdata["data"][type][0].toString();
-          } else {
-            setSnackbar(msg!, context);
-          }
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        }, onError: (error) {
-          setSnackbar(error.toString(), context);
-        },);
+        final currentLang = getCurrentLang(context);
+
+        apiBaseHelper.postAPICall(getSettingApi, parameter).then(
+          (getdata) {
+            final bool error = getdata["error"];
+            final String? msg = getdata["message"];
+            if (!error) {
+              privacy = getdata["data"][type][0][currentLang];
+            } else {
+              setSnackbar(msg!, context);
+            }
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+          },
+          onError: (error) {
+            setSnackbar(error.toString(), context);
+          },
+        );
       } on TimeoutException catch (_) {
         _isLoading = false;
         setSnackbar(getTranslated(context, 'somethingMSg')!, context);
@@ -210,5 +235,9 @@ static Route route(RouteSettings settings) {
         });
       }
     }
+  }
+
+  String getCurrentLang(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'ar' ? 'ar' : 'en';
   }
 }

@@ -361,12 +361,15 @@ class PushNotificationService {
     );
   }
 
-  @pragma('vm:entry-point')
-  static Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
-    print("openNotification:background>${message.data}");
-    setPrefrenceBool(ISFROMBACK, true);
-    await Firebase.initializeApp();
-  }
+ @pragma('vm:entry-point')
+static Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
+  print("openNotification:background>${message.data}");
+  setPrefrenceBool(ISFROMBACK, true);
+
+  // Prevent duplicate initialization
+  
+}
+
 
   Future<String> _downloadAndSaveImage(String url, String fileName) async {
     final directory = await getApplicationDocumentsDirectory();

@@ -13,17 +13,18 @@ import '../utils/blured_router.dart';
 import 'HomePage.dart';
 import '../app/api_language.dart';
 
-
 class AboutUs extends StatefulWidget {
   final String? title;
+  final bool fromTab; // 👈 NEW: flag to detect Dashboard tab usage
 
-  const AboutUs({super.key, this.title});
+  const AboutUs({super.key, this.title, this.fromTab = false});
 
   static Route route(RouteSettings settings) {
     final Map? arguments = settings.arguments as Map?;
     return BlurredRouter(
       builder: (context) => AboutUs(
         title: arguments?['title'],
+        fromTab: false, // 👈 this is when it's opened from My Profile
       ),
     );
   }
@@ -61,42 +62,47 @@ class _AboutUsState extends State<AboutUs> with TickerProviderStateMixin {
   }
 
   Future<void> getSetting() async {
-    _isNetworkAvail = await isNetworkAvailable();
-    if (_isNetworkAvail) {
-      try {
-        final parameter = {TYPE: ABOUT_US};
-        final getdata = await apiBaseHelper.postAPICall(getSettingApi, parameter);
-        final bool error = getdata["error"];
-        if (!error) {
-          String rawContent = getdata["data"][ABOUT_US][0].toString();
+  _isNetworkAvail = await isNetworkAvailable();
+  if (_isNetworkAvail) {
+    try {
+      final parameter = {TYPE: ABOUT_US};
+      final getdata = await apiBaseHelper.postAPICall(getSettingApi, parameter);
+      final bool error = getdata["error"];
 
-          Locale currentLocale = Localizations.localeOf(context);
-          if (currentLocale.languageCode != 'en') {
-            rawContent = await translateDynamicText(rawContent, currentLocale.languageCode);
-          }
+      if (!error) {
+        // Detect current language
+        Locale currentLocale = Localizations.localeOf(context);
+        String langCode = currentLocale.languageCode;
 
-          content = rawContent;
-        } else {
-          setSnackbar(getdata["message"], context);
-        }
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      } on TimeoutException catch (_) {
-        setSnackbar(getTranslated(context, 'somethingMSg')!, context);
+        // Use about_us_ar if Arabic, otherwise default to about_us
+        String key = langCode == 'ar' ? 'about_us_ar' : 'about_us';
+
+        // Fetch content from the response
+        String rawContent = getdata["data"][key][0].toString();
+        content = rawContent;
+      } else {
+        setSnackbar(getTranslated(context, getdata["message"]) ?? getdata["message"], context);
+      }
+
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-    } else {
+    } on TimeoutException catch (_) {
+      setSnackbar(getTranslated(context, 'somethingMSg')!, context);
       setState(() {
-        _isNetworkAvail = false;
         _isLoading = false;
       });
     }
+  } else {
+    setState(() {
+      _isNetworkAvail = false;
+      _isLoading = false;
+    });
   }
+}
+
 
   Future<void> _playAnimation() async {
     try {
@@ -151,38 +157,41 @@ class _AboutUsState extends State<AboutUs> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return _isLoading
-        ? Scaffold(
-            appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'ABOUT_LBL')!, context),
-            body: getProgress(context),
-          )
+    final Widget contentWidget = _isLoading
+        ? getProgress(context)
         : _isNetworkAvail
-            ? Scaffold(
-                appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'ABOUT_LBL')!, context),
-                body: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: HtmlWidget(
-                      content ?? "",
-                      onTapUrl: (url) async {
-                        if (await canLaunchUrl(Uri.parse(url!))) {
-                          await launchUrl(Uri.parse(url));
-                          return true;
-                        } else {
-                          throw 'Could not launch $url';
-                        }
-                      },
-                      onErrorBuilder: (context, element, error) => Text('$element error: $error'),
-                      onLoadingBuilder: (context, element, loadingProgress) =>
-                          showCircularProgress(context, true, Theme.of(context).primaryColor),
-                      textStyle: TextStyle(color: Theme.of(context).colorScheme.fontColor),
-                    ),
-                  ),
+            ? SingleChildScrollView(
+                padding: const EdgeInsets.all(12.0),
+                child: HtmlWidget(
+                  content ?? "",
+                  onTapUrl: (url) async {
+                    if (await canLaunchUrl(Uri.parse(url))) {
+                      await launchUrl(Uri.parse(url));
+                      return true;
+                    }
+                    return false;
+                  },
+                  textStyle: TextStyle(color: Theme.of(context).colorScheme.fontColor),
                 ),
               )
-            : Scaffold(
-                appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'ABOUT_LBL')!, context),
-                body: noInternet(context),
-              );
+            : noInternet(context);
+
+    // If AboutUs is part of a Dashboard tab, skip Scaffold/AppBar
+   if (widget.fromTab) {
+  return SafeArea(
+    bottom: true, // ensures content stays above tab bar
+    child: Padding(
+      padding: const EdgeInsets.only(bottom: 60.0), // adjust if your bottom bar height is different
+      child: contentWidget,
+    ),
+  );
+}
+
+
+    // Else use full screen with AppBar
+    return Scaffold(
+      appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'ABOUT_LBL')!, context),
+      body: contentWidget,
+    );
   }
 }

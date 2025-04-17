@@ -221,7 +221,8 @@ class HomePageState extends State<Dashboard>
                 controller: _pageController,
                 children:  [
                  const HomePage(),
-const AboutUs(),                
+const AboutUs(fromTab: true),
+                
 const   MyOrder(),
                  const Cart(
                     fromBottom: true,

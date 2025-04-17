@@ -15,10 +15,10 @@ class AppSettings {
   static const String iosPackage = 'com.customersingle.customer';
 
   // The URL link to the iOS app on the App Store (to be replaced with the actual link)
-  static const String iosLink = 'your ios link here';
+  static const String iosLink = 'https://apps.apple.com/qa/app/qatrat-kheir-%D9%82%D8%B7%D8%B1%D8%A9-%D8%AE%D9%8A%D8%B1/id6743666276';
 
   // App Store ID for the iOS app
-  static const String appStoreId = '123456789';
+  static const String appStoreId = '6743666276';
 
 // API configuration: Update with your server URL and client-specific details
 static const String baseUrl =
