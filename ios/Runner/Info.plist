@@ -22,15 +22,25 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+
 	<key>CFBundleURLTypes</key>
 	<array>
+		<!-- Custom app scheme -->
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>qatratkheir</string>
 			</array>
 		</dict>
+		<!-- Google Sign-In reversed client ID -->
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.388298698922-gftnl5f973cm8jufpkaqgu0p3dkamvno</string>
+			</array>
+		</dict>
 	</array>
+
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSApplicationCategoryType</key>
@@ -43,6 +53,7 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
