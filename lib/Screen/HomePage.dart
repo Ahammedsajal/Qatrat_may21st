@@ -174,19 +174,36 @@ class _HomePageState extends State<HomePage>
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      
-                      _getSearchBar(),
-                      const SizedBox(height: 12),
-                      _catList(),
-                      const SizedBox(height: 12),
-                      _slider(),
-                       NeumorphicSections(),
-                      const BrandsListWidget(),
-                      _section(),
-                      
-                      
-                    ],
+                   children: [
+  _slider(),
+  const SizedBox(height: 12),
+  _getSearchBar(),
+  const SizedBox(height: 6),
+  NeumorphicSections(minimal: true), // We'll handle this next
+  const SizedBox(height: 0),
+  Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 20),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Text(
+        getTranslated(context, 'CATEGORIES') ?? "Categories",
+        style: Theme.of(context).textTheme.titleMedium!.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.fontColor,
+            ),
+      ),
+    ],
+  ),
+),
+const SizedBox(height: 10),
+_catGridList(),
+
+  const SizedBox(height: 0),
+  const BrandsListWidget(),
+  _section(),
+],
+
                   ),
                 ),
               ),
@@ -549,119 +566,80 @@ Widget _slider() {
     );
   }
 
-  Widget _catList() {
-  return Selector<HomeProvider, bool>(
-    selector: (_, homeProvider) => homeProvider.catLoading,
-    builder: (context, isLoading, child) {
-      if (isLoading) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: SizedBox(
-            height: 70,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: 5,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) => Shimmer.fromColors(
-                baseColor: Theme.of(context).colorScheme.simmerBase,
-                highlightColor: Theme.of(context).colorScheme.simmerHigh,
-                child: Container(
-                  width: 120,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF26897e),
-                        Color(0xFF1ebaaa),
-                        Color(0xFF247b88),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+  Widget _catGridList() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    child: GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: catList.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 2.5,
+      ),
+      itemBuilder: (context, index) {
+        final cat = catList[index];
+        return InkWell(
+          onTap: () async {
+            await Navigator.pushNamed(
+              context,
+              Routers.productListScreen,
+              arguments: {
+                "name": cat.name,
+                "id": cat.id,
+                "tag": false,
+                "fromSeller": false,
+              },
+            );
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF26897e), Color(0xFF1ebaaa)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                if (cat.image != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: networkImageCommon(
+                      cat.image!,
+                      30,
+                      width: 30,
+                      height: 30,
+                      false,
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                  ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    getTranslated(context, cat.name!) ??
+                        capitalize(cat.name!.toLowerCase()),
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         );
-      }
-
-      return SizedBox(
-        height: 70,
-        child: ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          scrollDirection: Axis.horizontal,
-          itemCount: catList.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (context, index) {
-            final cat = catList[index];
-            return InkWell(
-              onTap: () async {
-                await Navigator.pushNamed(
-                  context,
-                  Routers.productListScreen,
-                  arguments: {
-                    "name": cat.name,
-                    "id": cat.id,
-                    "tag": false,
-                    "fromSeller": false,
-                  },
-                );
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                width: 130,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF26897e),
-                      Color(0xFF1ebaaa),
-                      Color(0xFF247b88),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    if (cat.image != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: networkImageCommon(
-                          cat.image!,
-                          30,
-                          width: 30,
-                          height: 30,
-                          false,
-                        ),
-                      ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        getTranslated(context, cat.name!) ??
-                            capitalize(cat.name!.toLowerCase()),
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    },
+      },
+    ),
   );
 }
+
 
 
 
@@ -1940,6 +1918,9 @@ class BrandsListWidget extends StatelessWidget {
 
 
 class NeumorphicSections extends StatelessWidget {
+  final bool minimal;
+  NeumorphicSections({this.minimal = false});
+
   final List<Map<String, dynamic>> sections = [
     {
       "title": "MOST_NEEDED_MOSQUES",
@@ -1953,35 +1934,20 @@ class NeumorphicSections extends StatelessWidget {
       "route": Routers.qatarMosquesScreen,
       "color": Color(0xFF1ebaaa),
     },
-    {
-      "title": "WATER",
-      "icon": Icons.local_drink,
-      "route": Routers.productListScreen,
-      "color": Color(0xFF247b88),
-      "categoryId": "111",
-    },
-    {
-      "title": "FOOD_DATES",
-      "icon": "assets/images/date-fruit.png",
-      "route": Routers.productListScreen,
-      "color": Color(0xFF1ebaaa),
-      "categoryId": "112",
-      
-    },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(10,10,10,0), // Reduced bottom padding from 10 to 5
       child: GridView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 20,
-          mainAxisSpacing: 20,
-          childAspectRatio: 1.1,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 0,
+          childAspectRatio: 1.5,
         ),
         itemCount: sections.length,
         itemBuilder: (context, index) {
@@ -1991,79 +1957,74 @@ class NeumorphicSections extends StatelessWidget {
             icon: sections[index]["icon"],
             color: sections[index]["color"],
             route: sections[index]["route"],
-            categoryId: sections[index]["categoryId"],
           );
         },
       ),
     );
   }
 
- Widget _buildNeumorphicCard(
-  BuildContext context, {
-  required String title,
-  required dynamic icon, // Accepts IconData or asset String.
-  required Color color,
-  required String route,
-  String? categoryId,
-}) {
-  // Determine which widget to use based on the type of icon.
-  Widget iconWidget;
-  if (icon is IconData) {
-    iconWidget = NeumorphicIcon(
-      icon,
-      size: 55,
+  Widget _buildNeumorphicCard(
+    BuildContext context, {
+    required String title,
+    required dynamic icon,
+    required Color color,
+    required String route,
+    String? categoryId,
+  }) {
+    Widget iconWidget;
+    if (icon is IconData) {
+      iconWidget = NeumorphicIcon(
+        icon,
+        size: 55,
+        style: NeumorphicStyle(
+          color: Colors.white,
+          depth: 4,
+        ),
+      );
+    } else if (icon is String) {
+      iconWidget = Image.asset(
+        icon,
+        width: 70,
+        height: 70,
+      );
+    } else {
+      iconWidget = const SizedBox.shrink();
+    }
+
+    return NeumorphicButton(
+      onPressed: () {
+        if (categoryId != null) {
+          Navigator.pushNamed(context, route, arguments: {
+            "name": getTranslated(context, title) ?? title,
+            "tag": false,
+            "fromSeller": false,
+          });
+        } else {
+          Navigator.pushNamed(context, route);
+        }
+      },
       style: NeumorphicStyle(
-        color: Colors.white,
-        depth: 4,
+        depth: 0,
+        intensity: 0,
+        boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(18)),
+        color: color,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          iconWidget,
+          const SizedBox(height: 6),
+          Text(
+            getTranslated(context, title) ?? title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
-  } else if (icon is String) {
-    iconWidget = Image.asset(
-      icon,
-      width: 70,
-      height: 70,
-      // Optionally, if your asset is a single-color icon, you can tint it:
-      // color: Colors.white,
-    );
-  } else {
-    iconWidget = const SizedBox.shrink();
   }
-
-  return NeumorphicButton(
-    onPressed: () {
-      if (categoryId != null) {
-        Navigator.pushNamed(context, route, arguments: {
-          "name": getTranslated(context, title) ?? title,
-          "id": categoryId, // Pass the category ID so widget.id is not null.
-          "tag": false,
-          "fromSeller": false,
-        });
-      } else {
-        Navigator.pushNamed(context, route);
-      }
-    },
-    style: NeumorphicStyle(
-      depth: 0,
-      intensity: 0,
-      boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(18)),
-      color: color,
-    ),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        iconWidget,
-        const SizedBox(height: 14),
-        Text(
-          getTranslated(context, title) ?? title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    ),
-  );
-}
 }
