@@ -78,24 +78,29 @@ class _QatarMosquesState extends State<QatarMosques> {
   }
 
   void _updateSuggestions(String query) {
-    final mosqueList = (context.read<FetchMosquesCubit>().state is FetchMosquesSuccess)
-        ? (context.read<FetchMosquesCubit>().state as FetchMosquesSuccess).mosques
-        : [];
+  final isArabic = Localizations.localeOf(context).languageCode == "ar";
 
-    final matchedMosques = mosqueList
-        .where((mosque) => mosque.name?.toLowerCase().contains(query.toLowerCase()) ?? false)
-        .toList()
-        .cast<MosqueModel>();
+  final mosqueList = (context.read<FetchMosquesCubit>().state is FetchMosquesSuccess)
+      ? (context.read<FetchMosquesCubit>().state as FetchMosquesSuccess).mosques
+      : [];
 
-    final matchedAreas = qatarAreaList
-        .where((area) => area.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+ final matchedMosques = mosqueList.where((mosque) {
+  final idMatch = mosque.id.contains(query);
+  final nameMatch = mosque.name.toLowerCase().contains(query.toLowerCase());
+  final nameArMatch = (mosque.nameAr?.toLowerCase().contains(query.toLowerCase()) ?? false);
+  return idMatch || nameMatch || nameArMatch;
+}).toList().cast<MosqueModel>();
 
-    setState(() {
-      _mosqueSuggestions = matchedMosques;
-      _areaSuggestions = matchedAreas;
-    });
-  }
+  final matchedAreas = qatarAreaList
+      .where((area) => area.toLowerCase().contains(query.toLowerCase()))
+      .toList();
+
+  setState(() {
+    _mosqueSuggestions = matchedMosques;
+    _areaSuggestions = matchedAreas;
+  });
+}
+
 
   void _handleSearchSelection(String query) {
     if (_mosqueSuggestions.isNotEmpty) {
@@ -185,15 +190,24 @@ class _QatarMosquesState extends State<QatarMosques> {
                   padding: const EdgeInsets.all(4),
                   shrinkWrap: true,
                   children: [
-                    ..._mosqueSuggestions.map((mosque) => ListTile(
-                          title: Text(mosque.name ?? getTranslated(context, "UNNAMED_MOSQUE")!,
-                            style: TextStyle(color: isDark ? Colors.white : Colors.black),),
+                   ..._mosqueSuggestions.map((mosque) {
+  final isArabic = Localizations.localeOf(context).languageCode == "ar";
+  final displayName = isArabic
+      ? (mosque.nameAr?.isNotEmpty ?? false ? mosque.nameAr! : mosque.name)
+      : mosque.name;
 
-                          subtitle: Text(mosque.address ?? getTranslated(context, "NO_ADDRESS")!,
-                          style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-                          ),
-                          onTap: () => _selectMosqueFromSuggestion(mosque),
-                        )),
+  final displayAddress = isArabic
+      ? (mosque.addressAr?.isNotEmpty ?? false ? mosque.addressAr! : getTranslated(context, "NO_ADDRESS")!)
+      : (mosque.address?.isNotEmpty ?? false ? mosque.address! : getTranslated(context, "NO_ADDRESS")!);
+
+  return ListTile(
+    leading: const Icon(Icons.location_on),
+    title: Text('$displayName (${mosque.id})', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+    subtitle: Text(displayAddress, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+    onTap: () => _selectMosqueFromSuggestion(mosque),
+  );
+}),
+
                     ..._areaSuggestions.map((area) => ListTile(
                           leading: const Icon(Icons.place),
                           title: Text(area),
@@ -275,67 +289,77 @@ class _QatarMosquesState extends State<QatarMosques> {
   }
 
   void _showConfirmationDialog(BuildContext context, MosqueModel mosque) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: Text(getTranslated(context, "CONFIRM_MOSQUE_TITLE")!),
-          content: Card(
-            elevation: 3,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(getTranslated(context, "MOSQUE_NAME")!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text((mosque.name?.isNotEmpty ?? false)
-                      ? mosque.name!
-                      : "Mosque at (${mosque.latitude}, ${mosque.longitude})"),
-                  const SizedBox(height: 12),
-                  Text(getTranslated(context, "ADDRESS")!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text((mosque.address?.isNotEmpty ?? false)
-                      ? mosque.address!
-                      : getTranslated(context, "NO_ADDRESS")!),
-                  const SizedBox(height: 12),
-                  Text(getTranslated(context, "COORDINATES")!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text("(${mosque.latitude}, ${mosque.longitude})"),
-                ],
-              ),
+  final isArabic = Localizations.localeOf(context).languageCode == "ar";
+
+  showDialog(
+    context: context,
+    builder: (ctx) {
+      return AlertDialog(
+        title: Text(getTranslated(context, "CONFIRM_MOSQUE_TITLE")!),
+        content: Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(getTranslated(context, "MOSQUE_ID")!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(mosque.id),
+                const SizedBox(height: 12),
+                Text(getTranslated(context, "MOSQUE_NAME")!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  isArabic
+                      ? (mosque.nameAr?.isNotEmpty ?? false ? mosque.nameAr! : mosque.name)
+                      : mosque.name,
+                ),
+                const SizedBox(height: 12),
+                Text(getTranslated(context, "ADDRESS")!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  isArabic
+                      ? (mosque.addressAr?.isNotEmpty ?? false ? mosque.addressAr! : getTranslated(context, "NO_ADDRESS")!)
+                      : (mosque.address?.isNotEmpty ?? false ? mosque.address! : getTranslated(context, "NO_ADDRESS")!),
+                ),
+                const SizedBox(height: 12),
+                Text(getTranslated(context, "COORDINATES")!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text("(${mosque.latitude}, ${mosque.longitude})"),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(getTranslated(context, "CANCEL")!),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                context.read<MosqueProvider>().setSelectedMosque(mosque);
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(getTranslated(context, "CANCEL")!),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.read<MosqueProvider>().setSelectedMosque(mosque);
 
-                if (widget.isFromCheckout) {
-                  Navigator.pop(context);
-                  Navigator.pop(context, mosque);
-                } else {
-                  Navigator.pop(context);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => MostNeededMosquesFromMap(
-                        mosques: (context.read<FetchMosquesCubit>().state is FetchMosquesSuccess)
-                            ? (context.read<FetchMosquesCubit>().state as FetchMosquesSuccess).mosques
-                            : [],
-                      ),
+              if (widget.isFromCheckout) {
+                Navigator.pop(context);
+                Navigator.pop(context, mosque);
+              } else {
+                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MostNeededMosquesFromMap(
+                      mosques: (context.read<FetchMosquesCubit>().state is FetchMosquesSuccess)
+                          ? (context.read<FetchMosquesCubit>().state as FetchMosquesSuccess).mosques
+                          : [],
                     ),
-                  );
-                }
-              },
-              child: Text(getTranslated(context, "CONFIRM")!),
-            ),
-          ],
-        );
-      },
-    );
-  }
+                  ),
+                );
+              }
+            },
+            child: Text(getTranslated(context, "CONFIRM")!),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 }

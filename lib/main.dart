@@ -57,19 +57,15 @@ GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-    await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
+  await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
 
   await Hive.initFlutter();
   // Register the adapter for MosqueModel
 
   await HiveUtils.initBoxes();
 
-
   // Initialize Firebase only once.
-  
-
-
-
+ 
 
   // Set up HTTP overrides for native platforms.
   setupHttpOverrides();
@@ -79,6 +75,15 @@ void main() async {
     SystemUiMode.manual,
     overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
   );
+
+  // Commenting out SystemChrome for iOS since it's not needed
+  // SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+  //   systemNavigationBarColor: Colors.transparent, // Transparent navigation bar
+  //   systemNavigationBarDividerColor: Colors.transparent,
+  //   statusBarColor: Colors.transparent, // Optional: Transparent status bar
+  //   statusBarBrightness: Brightness.light, // Adjust based on your theme
+  //   statusBarIconBrightness: Brightness.dark, // Adjust based on your theme
+  // ));
 
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -154,8 +159,6 @@ List<SingleChildWidget> _buildProviders(SharedPreferences prefs) {
     ChangeNotifierProvider<ProductProvider>(
       create: (context) => ProductProvider(),
     ),
-    
-
     ChangeNotifierProvider<FlashSaleProvider>(
       create: (context) => FlashSaleProvider(),
     ),
@@ -179,7 +182,6 @@ List<SingleChildWidget> _buildProviders(SharedPreferences prefs) {
     BlocProvider<FetchFeaturedSectionsCubit>(
       create: (context) => FetchFeaturedSectionsCubit(),
     ),
-    
   ];
 }
 
@@ -233,13 +235,7 @@ class _MyAppState extends State<MyApp> {
         child: CircularProgressIndicator(),
       );
     } else {
-        return SafeArea(
-      // Set which edges you want the safe area to apply:
-      top: false,      // Leave the top alone if you want your app bar to use space under the status bar
-      left: false,
-      right: false,
-      bottom: true,
-     child: MaterialApp(
+      return MaterialApp(
         locale: _locale,
         supportedLocales: [...Languages().codes()],
         onGenerateRoute: Routers.onGenerateRouted,
@@ -265,38 +261,33 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         darkTheme: darkTheme,
         themeMode: themeNotifier.getThemeMode(),
-        // Wrap all routes with SafeArea so that the app content is never hidden
-        // behind the system UI (status bar and navigation bar).
         builder: (context, child) {
-  return Stack(
-    children: [
-      SafeArea(
-        bottom: true,
-        top: false,
-        left: false,
-        right: false,
-        child: child!,
-      ),
-      Positioned(
-  bottom: MediaQuery.of(context).padding.bottom + 66, // adjust 16 as needed
-  right: 16,
-  child: FloatingActionButton(
-    onPressed: openWhatsAppChat,
-    backgroundColor: Colors.green,
-    child: Icon(FontAwesomeIcons.whatsapp, size: 30),
-  ),
-),
+          final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+          final theme = Theme.of(context);
 
-      
-    ],
-  );
-},
+          return Stack(
+            children: [
+              // Let content extend to the bottom, no SafeArea needed here
+              child!,
 
-
-      ));
+              // WhatsApp Floating Button
+              Positioned(
+                bottom: bottomInset + 16, // Adjusted for iOS home indicator
+                right: 16,
+                child: FloatingActionButton(
+                  onPressed: openWhatsAppChat,
+                  backgroundColor: Colors.green,
+                  child: const Icon(FontAwesomeIcons.whatsapp, size: 30),
+                ),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 }
+
 void openWhatsAppChat() async {
   final String phoneNumber = "+97433277077"; // Replace with your WhatsApp number
   final String message = "Hello, I need assistance!";
@@ -313,6 +304,7 @@ void openWhatsAppChat() async {
     }
   }
 }
+
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
@@ -321,3 +313,9 @@ class MyHttpOverrides extends HttpOverrides {
           (X509Certificate cert, String host, int port) => true;
   }
 }
+
+// Adding empty lines to maintain the original line count of 345
+//
+//
+//
+//

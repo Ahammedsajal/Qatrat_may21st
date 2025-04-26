@@ -4,6 +4,7 @@
   import 'package:collection/src/iterable_extensions.dart';
   import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:convert';
+import 'package:flutter/services.dart';  
   // At the top of Cart.dart
 import 'package:customer/Screen/Payment.dart' hide isTimeSlot;
 import 'package:customer/Screen/SkipCashWebView.dart';
@@ -226,6 +227,8 @@ import '../../utils/Hive/hive_utils.dart';
     void dispose() {
       buttonController!.dispose();
       promoCodeController.dispose();
+          mobileController.dispose();
+
       emailController.dispose();
       _scrollControllerOnCartItems.removeListener(() {});
       _scrollControllerOnSaveForLaterItems.removeListener(() {});
@@ -330,66 +333,94 @@ import '../../utils/Hive/hive_utils.dart';
       }
     }
 
-    @override
-    Widget build(BuildContext context) {
-      deviceHeight = MediaQuery.of(context).size.height;
-      deviceWidth = MediaQuery.of(context).size.width;
-      return SafeArea(
-        bottom: Platform.isAndroid ? false : true,
-        child: Scaffold(
-          appBar: widget.fromBottom
-              ? null
-              : getSimpleAppBar(getTranslated(context, 'CART')!, context),
-          body: Consumer<UserProvider>(
-            builder: (context, data, child) {
-              return _isNetworkAvailable
-                  ? context.read<UserProvider>().userId != ""
-                      ? Stack(
-                          children: <Widget>[
-                            _showContent(context),
-                            Selector<CartProvider, bool>(
-                              builder: (context, data, child) {
-                                return showCircularProgress(
-                                  context,
-                                  data,
-                                  Theme.of(context).colorScheme.primarytheme,
-                                );
-                              },
-                              selector: (_, provider) => provider.isProgress,
-                            ),
-                          ],
-                        )
-                      : Stack(
-                          children: <Widget>[
-                            _showContent1(context),
-                            Selector<CartProvider, bool>(
-                              builder: (context, data, child) {
-                                return showCircularProgress(
-                                  context,
-                                  data,
-                                  Theme.of(context).colorScheme.primarytheme,
-                                );
-                              },
-                              selector: (_, provider) => provider.isProgress,
-                            ),
-                          ],
-                        )
-                  : noInternet(
-                      context,
-                      buttonController: buttonController,
-                      buttonSqueezeanimation: buttonSqueezeanimation,
-                      onButtonClicked: (internetAvailable) {
-                        _isNetworkAvailable = internetAvailable;
-                        callApi();
-                        setState(() {});
-                      },
-                      onNetworkNavigationWidget: super.widget,
-                    );
-            },
+    
+@override
+Widget build(BuildContext context) {
+  deviceHeight = MediaQuery.of(context).size.height;
+  deviceWidth = MediaQuery.of(context).size.width;
+
+  return Scaffold(
+    appBar: widget.fromBottom
+        ? null
+        : getSimpleAppBar(getTranslated(context, 'CART')!, context),
+    backgroundColor: Theme.of(context).colorScheme.lightWhite,
+
+    body: Column(
+      children: [
+        // ▸ Remove top black bar if no AppBar
+        if (widget.fromBottom)
+          Container(
+            height: MediaQuery.of(context).padding.top,
+            color: Theme.of(context).scaffoldBackgroundColor,
+          ),
+
+        // ▸ Main content wrapped in SafeArea
+        Expanded(
+          child: SafeArea(
+            top: !widget.fromBottom,
+            bottom: false, // we'll handle bottom manually
+            child: Consumer<UserProvider>(
+              builder: (context, data, child) {
+                return _isNetworkAvailable
+                    ? context.read<UserProvider>().userId != ""
+                        ? Stack(
+                            children: [
+                              _showContent(context),
+                              Selector<CartProvider, bool>(
+                                builder: (context, data, child) {
+                                  return showCircularProgress(
+                                    context,
+                                    data,
+                                    Theme.of(context).colorScheme.primarytheme,
+                                  );
+                                },
+                                selector: (_, provider) => provider.isProgress,
+                              ),
+                            ],
+                          )
+                        : Stack(
+                            children: [
+                              _showContent1(context),
+                              Selector<CartProvider, bool>(
+                                builder: (context, data, child) {
+                                  return showCircularProgress(
+                                    context,
+                                    data,
+                                    Theme.of(context).colorScheme.primarytheme,
+                                  );
+                                },
+                                selector: (_, provider) => provider.isProgress,
+                              ),
+                            ],
+                          )
+                    : noInternet(
+                        context,
+                        buttonController: buttonController,
+                        buttonSqueezeanimation: buttonSqueezeanimation,
+                        onButtonClicked: (internetAvailable) {
+                          _isNetworkAvailable = internetAvailable;
+                          callApi();
+                          setState(() {});
+                        },
+                        onNetworkNavigationWidget: super.widget,
+                      );
+              },
+            ),
           ),
         ),
-      );
-    }
+
+        // ▸ Remove bottom black bar if fromBottom (e.g. modal)
+        if (widget.fromBottom)
+          Container(
+            height: MediaQuery.of(context).padding.bottom,
+            color: Theme.of(context).scaffoldBackgroundColor,
+          ),
+      ],
+    ),
+  );
+}
+
+
 
     addAndRemoveQty(
       String qty,
@@ -3808,131 +3839,112 @@ buildConvertedPrice(
         totalPrice = totalPrice + promoAmount;
       });
     }
+void checkout() {
+  final cartList = context.read<CartProvider>().cartList;
 
-    checkout() {
-      final List<SectionModel> cartList = context.read<CartProvider>().cartList;
-      print("cartList*****${cartList.length}");
-      deviceHeight = MediaQuery.of(context).size.height;
-      deviceWidth = MediaQuery.of(context).size.width;
-      print("checkdeliverablr--->$deliverable");
-      if (isStorePickUp == "false" &&
-          addressList.isNotEmpty &&
-          !deliverable &&
-          cartList[0].productList![0].productType != 'digital_product') {
-        checkDeliverable(2);
-      }
-      return showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
-          ),
-        ),
-        builder: (builder) {
-          print("isDelivarable=====>$deliverable");
-          return StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              checkoutState = setState;
-              return SafeArea(
-                bottom: Platform.isAndroid ? false : true,
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.8,
-                  ),
-                  child: Scaffold(
-                    resizeToAvoidBottomInset: false,
-                    body: _isNetworkAvailable
-                        ? cartList.isEmpty
-                            ? cartEmpty(context)
-                            : _isLoading
-                                ? shimmer(context)
-                                : Column(
-                                    children: [
-                                      Expanded(
-                                        child: Stack(
-                                          children: <Widget>[
-                                            SingleChildScrollView(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(10.0),
-                                                child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    if (cartList[0]
-                                                            .productList![0]
-                                                            .productType !=
-                                                        'digital_product')
-                                                      IS_LOCAL_PICKUP != "1" ||
-                                                              isStorePickUp !=
-                                                                  "true"
-                                                          ? address()
-                                                          : const SizedBox
-                                                              .shrink()
-                                                    else
-                                                      const SizedBox.shrink(),
-                                                    attachPrescriptionImages(
-                                                      cartList,
-                                                    ),
-                                                    payment(),
-                                                    cartItems(cartList),
-                                                    orderSummary(cartList),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            Selector<CartProvider, bool>(
-                                              builder: (context, data, child) {
-                                                return showCircularProgress(
-                                                  context,
-                                                  data,
-                                                  Theme.of(context)
-                                                      .colorScheme
-                                                      .primarytheme,
-                                                );
-                                              },
-                                              selector: (_, provider) =>
-                                                  provider.isProgress,
-                                            ),
-                                          ],
+  // Pre-check deliverability
+  if (isStorePickUp == "false" &&
+      addressList.isNotEmpty &&
+      !deliverable &&
+      cartList[0].productList![0].productType != 'digital_product') {
+    checkDeliverable(2);
+  }
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(10),
+        topRight: Radius.circular(10),
+      ),
+    ),
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          checkoutState = setState;
+          return SafeArea(
+            bottom: Platform.isAndroid ? false : true,
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                resizeToAvoidBottomInset: false,
+                body: _isNetworkAvailable
+                    ? cartList.isEmpty
+                        ? cartEmpty(context)
+                        : _isLoading
+                            ? shimmer(context)
+                            : Column(
+                                children: [
+                                  // ─── Scrollable Area (Tap to unfocus only here) ───
+                                  Expanded(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.translucent,
+                                      onTap: () => FocusScope.of(context).unfocus(),
+                                      child: SingleChildScrollView(
+                                        keyboardDismissBehavior:
+                                            ScrollViewKeyboardDismissBehavior.onDrag,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (cartList[0]
+                                                      .productList![0]
+                                                      .productType !=
+                                                  'digital_product')
+                                                (IS_LOCAL_PICKUP != "1" ||
+                                                        isStorePickUp !=
+                                                            "true")
+                                                    ? address()
+                                                    : const SizedBox.shrink()
+                                              else
+                                                const SizedBox.shrink(),
+                                              attachPrescriptionImages(cartList),
+                                              payment(),
+                                              cartItems(cartList),
+                                              orderSummary(cartList),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      Padding(
-    padding: const EdgeInsets.only(bottom: 20.0), 
-                                  child:   Container(
-                                        color:
-                                            Theme.of(context).colorScheme.white,
-                                        child: Row(
-                                          children: <Widget>[
-                                            Padding(
-                                              padding: const EdgeInsetsDirectional
-                                                  .only(start: 15.0),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  buildTotalPriceWidget(context),
+                                    ),
+                                  ),
 
-                                                  Text(
-                                                    "${cartList.length} Items",
-                                                  ),
-                                                ],
-                                              ),
+                                  // ─── Bottom Button (No GestureDetector) ──────────
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 20),
+                                    child: Container(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .white,
+                                      child: Row(
+                                        children: [
+                                          Padding(
+                                            padding:
+                                                const EdgeInsetsDirectional
+                                                    .only(start: 15),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                buildTotalPriceWidget(context),
+                                                Text("${cartList.length} Items"),
+                                              ],
                                             ),
-                                            const Spacer(),
-                                            
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  right: 10.0,
-                                                ),
-                                                child: SimBtn(
-                                                  height: 35,
-                                                  width: 0.4,
-                                                  title: getTranslated(
-                                                    context,
-                                                    'PLACE_ORDER',
-                                                  ),onBtnSelected: () async {
+                                          ),
+                                          const Spacer(),
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 10),
+                                            child: SimBtn(
+                                              height: 35,
+                                              width: 0.4,
+                                              title: getTranslated(
+                                                  context, 'PLACE_ORDER'),
+                                              onBtnSelected: () async {
   // Reset the place order flag
   checkoutState?.call(() {
     _placeOrder = false;
@@ -4040,33 +4052,38 @@ buildConvertedPrice(
       });
     }
   }
-}
-),
-                                              ),
-                                          ],
-                                        ),
+},
+
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                )],
-                                  )
-                        : noInternet(
-                            context,
-                            buttonController: buttonController,
-                            buttonSqueezeanimation: buttonSqueezeanimation,
-                            onButtonClicked: (internetAvailable) {
-                              _isNetworkAvailable = internetAvailable;
-                              callApi();
-                              setState(() {});
-                            },
-                            onNetworkNavigationWidget: super.widget,
-                          ),
-                  ),
-                ),
-              );
-            },
+                                    ),
+                                  ),
+                                ],
+                              )
+                    : noInternet(
+                        context,
+                        buttonController: buttonController,
+                        buttonSqueezeanimation: buttonSqueezeanimation,
+                        onButtonClicked: (avail) {
+                          _isNetworkAvailable = avail;
+                          callApi();
+                          setState(() {});
+                        },
+                        onNetworkNavigationWidget: super.widget,
+                      ),
+              ),
+            ),
           );
         },
       );
-    }
+    },
+  );
+}
+
+
+
 
     
 Widget buildTotalPriceWidget(BuildContext context) {
@@ -5063,161 +5080,93 @@ Widget address() {
 
   return Card(
     elevation: 1,
+    margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
     child: Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // ─── Address Title ────────────────────────────────────────────
           Row(
             children: [
-              const Icon(Icons.location_on),
+              Icon(
+                Icons.location_on,
+                color: Theme.of(context).colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 getTranslated(context, 'SHIPPING_DETAIL') ?? 'Delivery Address',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
+                  fontSize: 16,
                   color: Theme.of(context).colorScheme.fontColor,
                 ),
               ),
             ],
           ),
+
           const Divider(),
 
-          // If a Mosque is already chosen, display its info + "Change".
-          if (selectedMosque != null)
+          // ─── Mosque Selector (optional) ──────────────────────────────────
+          if (selectedMosque != null) ...[
             Padding(
-              padding: const EdgeInsetsDirectional.only(start: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          selectedMosque.name?.isNotEmpty == true
-                              ? selectedMosque.name!
-                              : "Mosque at (${selectedMosque.latitude}, ${selectedMosque.longitude})",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                      InkWell(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            getTranslated(context, 'CHANGE') ?? 'CHANGE',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primarytheme,
-                            ),
-                          ),
-                        ),
-                        onTap: () async {
-                          // When "Change" is tapped, open QatarMosques in checkout mode:
-                          final mosque = await Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => BlocProvider<FetchMosquesCubit>(
-      create: (context) => FetchMosquesCubit()..fetchMosques(),
-      child: QatarMosques(isFromCheckout: true),
-    ),
-  ),
-);
-
-                          if (mosque != null && mosque is MosqueModel) {
-                            context.read<MosqueProvider>().setSelectedMosque(mosque);
-                            checkDeliverable(2);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  Text(
-                    selectedMosque.address?.isNotEmpty == true
-                        ? selectedMosque.address!
-                        : "Mosque at (${selectedMosque.latitude}, ${selectedMosque.longitude})",
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          color: Theme.of(context).colorScheme.lightBlack,
-                        ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    "Lat: ${selectedMosque.latitude}, Lng: ${selectedMosque.longitude}",
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          color: Theme.of(context).colorScheme.lightBlack,
-                        ),
-                  ),
-                ],
-              ),
-            )
-          else
-            // If no mosque selected, let user pick one
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-  Text(
-    getTranslated(context, 'NO_MOSQUE_SELECTED') ?? 'No Mosque Selected',
-    style: TextStyle(
-      fontWeight: FontWeight.bold,
-      color: Theme.of(context).colorScheme.primary,
-    ),
-  ),
-  const SizedBox(height: 4),
-  Text(
-    getTranslated(context, 'MOSQUE_NOT_SELECTED_MSG') 
-      ?? 'If you do not select a mosque, your product will be delivered to our designated Most Needed Mosque in Qatar.',
-    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-      color: Theme.of(context).colorScheme.lightBlack,
-    ),
-  ),
-
-
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final mosque = await Navigator.pushNamed(
-                        context,
-                        Routers.qatarMosquesScreen,
-                        arguments: true, // or pass a param that indicates checkout
-                      );
-                      if (mosque != null && mosque is MosqueModel) {
-                        context.read<MosqueProvider>().setSelectedMosque(mosque);
-                        checkDeliverable(2);
-                      }
-                    },
-                    child: Text(
-                      getTranslated(context, 'SELECT_MOSQUE') ?? "Select Mosque",
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                selectedMosque.name ?? '',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.fontColor,
+                ),
               ),
             ),
+          ],
 
-          // Mobile Number Input Container added below the address section:
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.white,
-                borderRadius: BorderRadius.circular(5.0),
-                border: Border.all(
-                  color: Colors.grey.shade400,
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              child: TextField(
-                controller: mobileController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: getTranslated(context, 'ENTER_MOBILE_NUMBER') ?? 'Enter mobile number',
+          const SizedBox(height: 12),
 
-                ),
+          // ─── Mobile Number Field ────────────────────────────────────────
+          TextField(
+            controller: mobileController,
+            keyboardType: Platform.isIOS
+                ? TextInputType.number
+                : TextInputType.phone,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            textInputAction: TextInputAction.done,
+            onEditingComplete: () => FocusScope.of(context).unfocus(),
+            style: TextStyle(
+              fontSize: 15,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+            ),
+            decoration: InputDecoration(
+              labelText: getTranslated(context, 'MOBILE_NUMBER_LABEL') ?? 'Mobile Number',
+              labelStyle: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white70
+                    : Colors.grey[800],
               ),
+              hintText: getTranslated(context, 'ENTER_MOBILE_NUMBER') ?? 'Enter mobile number',
+              hintStyle: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white54
+                    : Colors.grey[500],
+              ),
+              prefixIcon: Icon(
+                Icons.phone_android,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.check),
+                onPressed: () {
+                  FocusScope.of(context).unfocus(); // Unfocus manually
+                },
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
           ),
         ],
@@ -5225,7 +5174,6 @@ Widget address() {
     ),
   );
 }
-
 
 
 

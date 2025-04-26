@@ -4,7 +4,7 @@ import FirebaseCore
 import GoogleSignIn
 import flutter_downloader
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
 
   override func application(

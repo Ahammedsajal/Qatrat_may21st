@@ -1,50 +1,71 @@
 import 'package:customer/Helper/String.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert'; 
+
+
+/* ---------------------------------------------------------------
+   Where the API stores images.  Adjust here if the host changes.
+   ---------------------------------------------------------------*/
+const String _host = 'http://qatratkheir.com/';
 
 class OrderModel {
-  String? id;
-  String? recContact;
-  String? recname;
-  String? name;
-  String? mobile;
-  String? delCharge;
-  String? walBal;
-  String? promo;
-  String? promoDis;
-  String? payMethod;
-  String? total;
-  String? subTotal;
-  String? payable;
-  String? address;
-  String? taxAmt;
-  String? taxPer;
-  String? orderDate;
-  String? dateTime;
-  String? isCancleable;
-  String? isReturnable;
-  String? isAlrCancelled;
-  String? isAlrReturned;
-  String? rtnReqSubmitted;
-  String? activeStatus;
-  String? otp;
-  String? deliveryBoyId;
-  String? invoice;
-  String? delDate;
-  String? delTime;
-  String? note;
-  String? courier_agency;
-  String? tracking_id;
-  String? tracking_url;
-  String? isLocalPickUp;
-  String? sellerNotes;
-  String? pickTime;
+/* ──────────────────────────────────────────────────────────── */
+/*  scalar fields (all nullable)                               */
+  String? id,
+      recContact,
+      recname,
+      name,
+      mobile,
+      delCharge,
+      walBal,
+      promo,
+      promoDis,
+      payMethod,
+      total,
+      subTotal,
+      payable,
+      address,
+      taxAmt,
+      taxPer,
+      orderDate,
+      dateTime,
+      isCancleable,
+      isReturnable,
+      isAlrCancelled,
+      isAlrReturned,
+      rtnReqSubmitted,
+      activeStatus,
+      otp,
+      deliveryBoyId,
+      invoice,
+      delDate,
+      delTime,
+      note,
+      courier_agency,
+      tracking_id,
+      tracking_url,
+      isLocalPickUp,
+      sellerNotes,
+      pickTime;
+
+/*  collections                                                */
   List<Attachment>? attachList = [];
-  List<dynamic>? orderPrescriptionAttachments = [];
-  List<OrderItem>? itemList;
-  List<String> listStatus = [];
-  List<String>? listDate = [];
+  List<dynamic>?    orderPrescriptionAttachments = [];
+  List<OrderItem>?  itemList  = [];
+  List<String>      listStatus = [];
+  List<String>?     listDate;
+
+/*  NEW – proof-of-delivery photos (always full URLs)          */
+  List<String>      deliveryProof;
+
+/* ──────────────────────────────────────────────────────────── */
   OrderModel({
-    this.id,
+    required this.id,
+    required this.listStatus,
+    required this.deliveryProof,
+    /* optional ↓ */
+    this.recContact,
+    this.recname,
     this.name,
     this.mobile,
     this.delCharge,
@@ -61,7 +82,6 @@ class OrderModel {
     this.orderDate,
     this.dateTime,
     this.itemList,
-    required this.listStatus,
     this.listDate,
     this.isReturnable,
     this.isCancleable,
@@ -80,88 +100,123 @@ class OrderModel {
     this.tracking_id,
     this.tracking_url,
     this.orderPrescriptionAttachments,
-    this.recContact,
-    this.recname,
     this.isLocalPickUp,
     this.pickTime,
     this.sellerNotes,
   });
-  factory OrderModel.fromJson(Map<String, dynamic> parsedJson) {
-    List<OrderItem> itemList = [];
-    final order = parsedJson[ORDER_ITEMS] as List?;
-    if (order == null || order.isEmpty) {
-      itemList = [];
-    } else {
-      itemList = order.map((data) => OrderItem.fromJson(data)).toList();
+
+/* ═════════ helper – makes every path absolute ═══════════════ */
+  static String _abs(String p) =>
+      p.startsWith('http') || p.startsWith('https') ? p : '$_host$p';
+static const _host = 'http://qatratkheir.com/';        // ← your domain
+
+/* ═════════ helper – turns whatever we get into List<String> ══ */
+  static List<String> _parseProof(dynamic raw) {
+    if (raw == null) return <String>[];
+
+    // Already an array
+    if (raw is List) {
+      return raw.map<String>((e) => _abs(e.toString())).toList();
     }
-    String date = parsedJson[DATE_ADDED];
-    date = DateFormat('dd-MM-yyyy').format(DateTime.parse(date));
+
+    // JSON-encoded string   "[\"uploads/…jpg\", …]"
+    if (raw is String && raw.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) {
+          return decoded.map<String>((e) => _abs(e.toString())).toList();
+        }
+      } catch (_) {/* ignore */}
+    }
+    return <String>[];
+  }
+
+/* ═════════ factory – build OrderModel from API map ══════════ */
+  factory OrderModel.fromJson(Map<String, dynamic> j) {
+    // ── items ────────────────────────────────────────────────
+    final items = (j[ORDER_ITEMS] as List? ?? [])
+        .map((e) => OrderItem.fromJson(e))
+        .toList();
+
+    // ── status history ───────────────────────────────────────
     final List<String> lStatus = [];
-    final List<String> lDate = [];
-    List<Attachment> attachmentList = [];
-    final attachments = parsedJson[ATTACHMENTS] as List;
-    if (attachments.isEmpty) {
-      attachmentList = [];
-    } else {
-      attachmentList =
-          attachments.map((data) => Attachment.fromJson(data)).toList();
+    final List<String> lDate   = [];
+    for (final s in j[STATUS]) {
+      lStatus.add(s[0]);
+      lDate.add(s[1]);
     }
-    final allSttus = parsedJson[STATUS];
-    for (final curStatus in allSttus) {
-      lStatus.add(curStatus[0]);
-      lDate.add(curStatus[1]);
-    }
+
+    // ── attachments ──────────────────────────────────────────
+    final attachList = (j[ATTACHMENTS] as List? ?? [])
+        .map((e) => Attachment.fromJson(e))
+        .toList();
+
+    // ── delivery-proof ───────────────────────────────────────
+    final proof = _parseProof(j['delivery_proof']);
+
     return OrderModel(
-      id: parsedJson[ID],
-      name: parsedJson[USERNAME],
-      mobile: parsedJson[MOBILE],
-      delCharge: parsedJson[DEL_CHARGE],
-      walBal: parsedJson[WAL_BAL],
-      promo: parsedJson[PROMOCODE],
-      promoDis: parsedJson[PROMO_DIS],
-      payMethod: parsedJson[PAYMENT_METHOD],
-      total: parsedJson[FINAL_TOTAL],
-      subTotal: parsedJson[TOTAL],
-      payable: parsedJson[TOTAL_PAYABLE],
-      address: parsedJson[ADDRESS],
-      taxAmt: parsedJson[TOTAL_TAX_AMT],
-      taxPer: parsedJson[TOTAL_TAX_PER],
-      dateTime: parsedJson[DATE_ADDED],
-      isCancleable: parsedJson[ISCANCLEABLE],
-      isReturnable: parsedJson[ISRETURNABLE],
-      isAlrCancelled: parsedJson[ISALRCANCLE],
-      isAlrReturned: parsedJson[ISALRRETURN],
-      rtnReqSubmitted: parsedJson[ISRTNREQSUBMITTED],
-      orderDate: date,
-      itemList: itemList,
-      listStatus: lStatus,
-      listDate: lDate,
-      invoice: parsedJson[INVOICE],
-      note: parsedJson[NOTES],
-      activeStatus: parsedJson[ACTIVE_STATUS],
-      otp: parsedJson[OTP],
-      attachList: attachmentList,
-      orderPrescriptionAttachments: parsedJson[orderAttachments],
-      delDate: parsedJson[DEL_DATE] != ""
-          ? DateFormat('dd-MM-yyyy')
-              .format(DateTime.parse(parsedJson[DEL_DATE]))
-          : '',
-      delTime: parsedJson[DEL_TIME] ?? '',
-      deliveryBoyId: parsedJson[DELIVERY_BOY_ID],
-      courier_agency: parsedJson[COURIER_AGENCY] ?? "",
-      tracking_id: parsedJson[TRACKING_ID] ?? "",
-      tracking_url: parsedJson[TRACKING_URL] ?? "",
-      recContact: parsedJson[RECIPIENT_CONTACT] ?? "",
-      recname: parsedJson[USER_NAME] ?? "",
-      isLocalPickUp: parsedJson[ISLOCALPICKUP] ?? "",
-      pickTime: parsedJson[PICKUP_TIME] != ""
-          ? DateFormat('dd-MM-yyyy')
-              .format(DateTime.parse(parsedJson[PICKUP_TIME]))
-          : '',
-      sellerNotes: parsedJson[SELLET_NOTES] ?? "",
+      id          : j[ID],
+      listStatus  : lStatus,
+      deliveryProof: proof,
+
+      /* optional ↓ (unchanged from your original model) */
+      name        : j[USERNAME],
+      mobile      : j[MOBILE],
+      delCharge   : j[DEL_CHARGE],
+      walBal      : j[WAL_BAL],
+      promo       : j[PROMOCODE],
+      promoDis    : j[PROMO_DIS],
+      payMethod   : j[PAYMENT_METHOD],
+      total       : j[FINAL_TOTAL],
+      subTotal    : j[TOTAL],
+      payable     : j[TOTAL_PAYABLE],
+      address     : j[ADDRESS],
+      taxAmt      : j[TOTAL_TAX_AMT],
+      taxPer      : j[TOTAL_TAX_PER],
+
+      dateTime    : j[DATE_ADDED],
+      orderDate   : DateFormat('dd-MM-yyyy')
+                      .format(DateTime.parse(j[DATE_ADDED])),
+
+      itemList    : items,
+      listDate    : lDate,
+
+      isCancleable: j[ISCANCLEABLE],
+      isReturnable: j[ISRETURNABLE],
+      isAlrCancelled: j[ISALRCANCLE],
+      isAlrReturned : j[ISALRRETURN],
+      rtnReqSubmitted: j[ISRTNREQSUBMITTED],
+      activeStatus  : j[ACTIVE_STATUS],
+      otp           : j[OTP],
+      invoice       : j[INVOICE],
+
+      delDate     : j[DEL_DATE] == ''
+          ? ''
+          : DateFormat('dd-MM-yyyy').format(DateTime.parse(j[DEL_DATE])),
+      delTime     : j[DEL_TIME] ?? '',
+      note        : j[NOTES],
+
+      deliveryBoyId: j[DELIVERY_BOY_ID],
+      attachList  : attachList,
+      orderPrescriptionAttachments: j[orderAttachments],
+
+      courier_agency : j[COURIER_AGENCY] ?? '',
+      tracking_id    : j[TRACKING_ID]    ?? '',
+      tracking_url   : j[TRACKING_URL]   ?? '',
+
+      recContact     : j[RECIPIENT_CONTACT] ?? '',
+      recname        : j[USER_NAME] ?? '',
+
+      isLocalPickUp  : j[ISLOCALPICKUP] ?? '',
+      pickTime       : j[PICKUP_TIME] == ''
+          ? ''
+          : DateFormat('dd-MM-yyyy')
+              .format(DateTime.parse(j[PICKUP_TIME])),
+      sellerNotes    : j[SELLET_NOTES] ?? '',
     );
   }
 }
+
 
 class OrderItem {
   String? id;

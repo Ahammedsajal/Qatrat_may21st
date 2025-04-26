@@ -92,20 +92,18 @@ class _SignUpPageState extends State<SignUp> with TickerProviderStateMixin {
   }
 
   Future<void> checkNetwork() async {
-    final bool avail = await isNetworkAvailable();
-    if (avail) {
-      if (referCode != null) getRegisterUser();
-    } else {
-      Future.delayed(const Duration(seconds: 2)).then((_) async {
-        if (mounted) {
-          setState(() {
-            _isNetworkAvail = false;
-          });
-        }
-        await buttonController!.reverse();
-      });
-    }
+  final bool avail = await isNetworkAvailable();
+  if (avail) {
+    // Was: if (referCode != null) getRegisterUser();
+    getRegisterUser();
+  } else {
+    Future.delayed(const Duration(seconds: 2)).then((_) async {
+      if (mounted) setState(() => _isNetworkAvail = false);
+      await buttonController!.reverse();
+    });
   }
+}
+
 
   bool validateAndSave() {
     final form = _formkey.currentState!;
@@ -614,14 +612,16 @@ class _SignUpPageState extends State<SignUp> with TickerProviderStateMixin {
   }
 
   Widget getLogo() {
-    return Positioned(
-      left: (MediaQuery.of(context).size.width / 2) - 50,
-      top: (MediaQuery.of(context).size.height * 0.2) - 50,
-      child: SizedBox(
-        width: 100,
-        height: 100,
-        child: SvgPicture.asset(getThemeColor(context)),
-      ),
-    );
-  }
+  return Positioned(
+    left: (MediaQuery.of(context).size.width / 2) - 50,
+    top: (MediaQuery.of(context).size.height * 0.2) - 50,
+    child: SizedBox(
+      width: 100,
+      height: 100,
+      // Was: SvgPicture.asset(getThemeColor(context))
+      child: Image.asset('assets/images/logo.PNG'),
+    ),
+  );
+}
+
 }

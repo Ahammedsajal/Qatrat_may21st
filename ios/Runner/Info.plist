@@ -22,17 +22,14 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-
 	<key>CFBundleURLTypes</key>
 	<array>
-		<!-- Custom app scheme -->
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>qatratkheir</string>
 			</array>
 		</dict>
-		<!-- Google Sign-In reversed client ID -->
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
@@ -40,20 +37,34 @@
 			</array>
 		</dict>
 	</array>
-
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSApplicationCategoryType</key>
 	<string></string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to your camera to allow you to upload photos or scan documents.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app uses your location to improve service accuracy and suggest relevant content.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to show relevant products and nearby mosques.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app uses your microphone to enable audio recording or voice-based features.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photo library to let you select and upload photos.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app uses speech recognition to convert your speech into text when needed.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
-
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -67,19 +78,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-
-	<!-- 🛡 Privacy Usage Descriptions -->
-	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to your camera to allow you to upload photos or scan documents.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This app uses your microphone to enable audio recording or voice-based features.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to your photo library to let you select and upload photos.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This app uses speech recognition to convert your speech into text when needed.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app uses your location to show relevant products and nearby mosques.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app uses your location to improve service accuracy and suggest relevant content.</string>
 </dict>
 </plist>

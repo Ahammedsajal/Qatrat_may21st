@@ -299,6 +299,50 @@ class StateOrder extends State<OrderDetail>
       ),
     );
   }
+/* ───────────────── Delivery-proof images ───────────────── */
+Widget deliveryProofImages(OrderModel model) {
+  if (!model.listStatus.contains(DELIVERD) || model.deliveryProof.isEmpty) {
+    return const SizedBox.shrink();
+  }
+
+  return Card(
+    elevation: 0,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            getTranslated(context, 'DELIVERY_PROOF_LBL') ?? 'Delivery proof',
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                  color: Theme.of(context).colorScheme.lightBlack,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 100,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: model.deliveryProof.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (ctx, i) => ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: networkImageCommon(
+                  model.deliveryProof[i],
+                  100,
+                  false,
+                  height: 100,
+                  width: 100,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
   priceDetails(OrderModel model) {
     return Card(
@@ -2222,7 +2266,10 @@ void showInvoiceDownloadDialog(BuildContext context, String filePath, String tar
                         ),
                       ) else const SizedBox.shrink(),
                 getTracking(model),
+                deliveryProofImages(model), 
                 showNote(model),
+                         // <─── ADD THIS LINE
+
                 orderPrescriptionAttachments(model),
                 bankTransfer(model),
                 getSingleProduct(model, ''),

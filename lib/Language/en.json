@@ -25,6 +25,7 @@
   "TOTAL_PRICE": "Total Price",
   "DELIVERY_CHARGE": "Delivery Charge",
   "HOME_LBL": "Home",
+  "DELIVERY_PROOF_LBL": "Proof of Delivery",
   "FAVORITE": "Favorite",
   "NOTIFICATION": "Notifications",
   "TRACK_ORDER": "Track Order",
@@ -474,7 +475,7 @@
   "FILE_DOWNLOAD_SUCCESS": "File Downloaded Successfully",
   "NO_PRODUCTS_WITH_YOUR_LINK_FOUND": "No Product Found With Your Link",
   "CANT_INCREASE_QNT_AFTER_ADD_IN_CART":"Quantity cannot be increased once the item is in the cart.",
-  
+  "about_us_content": "",
     "FOOD_DATES": "Dates",
     "WATER": "Water",
     "QATAR_MOSQUES": "Qatar Mosques",
@@ -490,6 +491,11 @@
     "MOSQUE_DEFAULT_NAME": "Mosque at ({latitude}, {longitude})",
     "ADDRESS_LABEL": "Address:",
     "NO_ADDRESS_PROVIDED": "No address provided",
+    "MOSQUE_ID": "Mosque Number",
+    "MOSQUE_NAME": "Mosque Name",
+    "ADDRESS": "Address",
+    "COORDINATES": "Coordinates",
+    "NO_ADDRESS": "No address available",
     "COORDINATES_LABEL": "Coordinates:",
   "CHOOSE_MOSQUE": "Choose a mosque from the list",
   "LOADING_MOSQUES": "Loading mosques...",
@@ -500,8 +506,10 @@
   "NO_MOSQUE_SELECTED": "No Mosque Selected",
   "DELIVERING_TO_MOSQUE": "Delivering to:",
   "CHANGE_MOSQUE": "Change Mosque",
-
-  "about_us_content": "<p><strong>About Us – Qatra: Essentials Delivery for Mosques</strong></p><p><strong>Who We Are</strong><br>We are Qatra. ...</p>...",
+"NO_TICKETS_YET": "You haven’t created any tickets yet",
+ "CREATE_NEW_TICKET": "Create New Ticket",
+ "MOBILE_NUMBER_LABEL" : "Mobile Number for Delivery",
+ 
   
     "PRIVACY": "Privacy Policy",
     "TERM": "Terms & Conditions",

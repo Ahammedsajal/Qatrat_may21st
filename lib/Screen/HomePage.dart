@@ -567,12 +567,95 @@ Widget _slider() {
   }
 
   Widget _catGridList() {
+  return Selector<HomeProvider, bool>(
+    selector: (_, provider) => provider.catLoading,
+    builder: (context, isLoading, child) {
+      if (isLoading) {
+        return _catLoadingShimmer(); // 👇 Use shimmer or placeholder
+      } else if (catList.isEmpty) {
+        return Center(child: Text(getTranslated(context, "NO_CATEGORIES") ?? "No categories found"));
+      } else {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: catList.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 2.5,
+            ),
+            itemBuilder: (context, index) {
+              final cat = catList[index];
+              return InkWell(
+                onTap: () async {
+                  await Navigator.pushNamed(
+                    context,
+                    Routers.productListScreen,
+                    arguments: {
+                      "name": cat.name,
+                      "id": cat.id,
+                      "tag": false,
+                      "fromSeller": false,
+                    },
+                  );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF26897e), Color(0xFF1ebaaa)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      if (cat.image != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(30),
+                          child: networkImageCommon(
+                            cat.image!,
+                            30,
+                            width: 30,
+                            height: 30,
+                            false,
+                          ),
+                        ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          getTranslated(context, cat.name!) ?? capitalize(cat.name!.toLowerCase()),
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      }
+    },
+  );
+}
+Widget _catLoadingShimmer() {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 16.0),
     child: GridView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
-      itemCount: catList.length,
+      itemCount: 6,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 12,
@@ -580,58 +663,13 @@ Widget _slider() {
         childAspectRatio: 2.5,
       ),
       itemBuilder: (context, index) {
-        final cat = catList[index];
-        return InkWell(
-          onTap: () async {
-            await Navigator.pushNamed(
-              context,
-              Routers.productListScreen,
-              arguments: {
-                "name": cat.name,
-                "id": cat.id,
-                "tag": false,
-                "fromSeller": false,
-              },
-            );
-          },
-          borderRadius: BorderRadius.circular(8),
+        return Shimmer.fromColors(
+          baseColor: Theme.of(context).colorScheme.simmerBase,
+          highlightColor: Theme.of(context).colorScheme.simmerHigh,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF26897e), Color(0xFF1ebaaa)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                if (cat.image != null)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: networkImageCommon(
-                      cat.image!,
-                      30,
-                      width: 30,
-                      height: 30,
-                      false,
-                    ),
-                  ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    getTranslated(context, cat.name!) ??
-                        capitalize(cat.name!.toLowerCase()),
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
             ),
           ),
         );

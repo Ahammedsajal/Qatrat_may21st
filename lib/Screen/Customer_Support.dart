@@ -106,15 +106,30 @@ class _customerSupportState extends State<customerSupport>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar:
-          getSimpleAppBar(getTranslated(context, 'customer_SUPPORT')!, context),
-      floatingActionButton: AnimatedOpacity(
+ @override
+@override
+Widget build(BuildContext context) {
+  // Detect RTL so “startFloat” always puts FAB on the physical left
+  final isRTL = Directionality.of(context) == TextDirection.rtl;
+
+  return Scaffold(
+    appBar: getSimpleAppBar(
+      getTranslated(context, 'customer_SUPPORT')!,
+      context,
+    ),
+
+    // In LTR, startFloat is left; in RTL, endFloat is left
+    floatingActionButtonLocation: isRTL
+        ? FloatingActionButtonLocation.endFloat
+        : FloatingActionButtonLocation.startFloat,
+
+    floatingActionButton: Padding(
+      padding: const EdgeInsets.only(bottom: 80.0),
+      child: AnimatedOpacity(
         duration: const Duration(milliseconds: 100),
         opacity: fabIsVisible ? 1 : 0,
         child: FloatingActionButton(
-          onPressed: () async {
+          onPressed: () {
             setState(() {
               edit = false;
               show = !show;
@@ -122,90 +137,138 @@ class _customerSupportState extends State<customerSupport>
             });
           },
           heroTag: null,
-          child: Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.primarytheme,
-            ),
-            child: Icon(
-              Icons.add,
-              color: Theme.of(context).colorScheme.white,
-            ),
-          ),
+          backgroundColor: Theme.of(context).colorScheme.primarytheme,
+          child: const Icon(Icons.add, color: Colors.white),
         ),
       ),
-      body: _isNetworkAvail
-          ? _isLoading
-              ? shimmer(context)
-              : Stack(children: [
+    ),
+
+    body: _isNetworkAvail
+        ? (_isLoading
+            ? shimmer(context)
+            : Stack(
+                children: [
                   SingleChildScrollView(
-                      controller: controller,
-                      child: Form(
-                        key: _formkey,
-                        child: Column(
-                          children: [
-                            if (show) Card(
-                                    elevation: 0,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          setType(),
-                                          setEmail(),
-                                          setTitle(),
-                                          setDesc(),
-                                          const SizedBox(height: 10),
+                    controller: controller,
+                    child: Form(
+                      key: _formkey,
+                      child: Column(
+                        children: [
+                          // “New Ticket” form
+                          if (show)
+                            Card(
+                              elevation: 0,
+                              margin: const EdgeInsets.all(8.0),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    setType(),
+                                    const SizedBox(height: 8),
+                                    setEmail(),
+                                    const SizedBox(height: 8),
+                                    setTitle(),
+                                    const SizedBox(height: 8),
+                                    setDesc(),
+                                    const SizedBox(height: 12),
+                                    attachmentSection(),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        if (edit) statusDropDown(),
+                                        const Spacer(),
+                                        sendButton(),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
 
-                                          attachmentSection(),
-
-                                          Row(
-                                            children: [
-                                              if (edit) statusDropDown() else const SizedBox.shrink(),
-                                              const Spacer(),
-                                              sendButton(),
-                                            ],
-                                          ),
-                                        ],
+                          // Ticket list or empty state
+                          if (ticketList.isNotEmpty)
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: (offset < total)
+                                  ? ticketList.length + 1
+                                  : ticketList.length,
+                              separatorBuilder: (_, __) => const Divider(),
+                              itemBuilder: (context, index) {
+                                if (index == ticketList.length &&
+                                    isLoadingmore) {
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primarytheme,
+                                    ),
+                                  );
+                                }
+                                return ticketItem(index);
+                              },
+                            )
+                          else
+                            SizedBox(
+                              height: deviceHeight! -
+                                  kToolbarHeight -
+                                  MediaQuery.of(context).padding.top,
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      getTranslated(
+                                          context, 'NO_TICKETS_YET')!,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                    const SizedBox(height: 24),
+                                    ElevatedButton.icon(
+                                      onPressed: () {
+                                        setState(() {
+                                          edit = false;
+                                          show = true;
+                                          clearAll();
+                                        });
+                                      },
+                                      icon: const Icon(Icons.add),
+                                      label: Text(
+                                        getTranslated(
+                                            context, 'CREATE_NEW_TICKET')!,
                                       ),
-                                    ),) else const SizedBox.shrink(),
-                            if (ticketList.isNotEmpty) ListView.separated(
-                                    separatorBuilder:
-                                        (BuildContext context, int index) =>
-                                            const Divider(),
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemCount: (offset < total)
-                                        ? ticketList.length + 1
-                                        : ticketList.length,
-                                    itemBuilder: (context, index) {
-                                      return (index == ticketList.length &&
-                                              isLoadingmore)
-                                          ? Center(
-                                              child: CircularProgressIndicator(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primarytheme,
-                                            ),)
-                                          : ticketItem(index);
-                                    },) else SizedBox(
-                                    height: deviceHeight! -
-                                        kToolbarHeight -
-                                        MediaQuery.of(context).padding.top,
-                                    child: getNoItem(context),),
-                          ],
-                        ),
-                      ),),
-                  showCircularProgress(context, _isProgress,
-                      Theme.of(context).colorScheme.primarytheme,),
-                ],)
-          : noInternet(context),
-    );
-  }
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primarytheme,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 12),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // global loading indicator
+                  showCircularProgress(
+                    context,
+                    _isProgress,
+                    Theme.of(context).colorScheme.primarytheme,
+                  ),
+                ],
+              ))
+        : noInternet(context),
+  );
+}
+
+
 Future<void> _pickFile() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles(
     allowMultiple: false,

@@ -191,68 +191,64 @@ class HomePageState extends State<Dashboard>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: _selBottom == 0,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          if (_selBottom != 0) {
-            _pageController.animateToPage(0,
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOut,);
-          }
+Widget build(BuildContext context) {
+  return PopScope(
+    canPop: _selBottom == 0,
+    onPopInvokedWithResult: (didPop, result) {
+      if (didPop) {
+        if (_selBottom != 0) {
+          _pageController.animateToPage(0,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut);
         }
-      },
-      child: SafeArea(
-          top: false,
-          child: Consumer<UserProvider>(builder: (context, data, child) {
-            return Scaffold(
-              extendBody: true,
-              backgroundColor: Theme.of(context).colorScheme.lightWhite,
-              appBar: PreferredSize(
-  preferredSize: Size.fromHeight(kToolbarHeight),
-  child: Builder(
-    builder: (newContext) => _getAppBar(newContext),
-  ),
-),
-
-
-              body: PageView(
-                controller: _pageController,
-                children:  [
-                 const HomePage(),
-const AboutUs(fromTab: true),
-                
-const   MyOrder(),
-                 const Cart(
-                    fromBottom: true,
-                  ),
-                const  MyProfile(),
-                ],
-                onPageChanged: (index) {
-                  setState(() {
-                    if (!context
-                        .read<HomeProvider>()
-                        .animationController
-                        .isAnimating) {
-                      context
-                          .read<HomeProvider>()
-                          .animationController
-                          .reverse();
-                      context.read<HomeProvider>().showBars(true);
-                    }
-                    _selBottom = index;
-                    if (index == 3) {
-                      cartTotalClear();
-                    }
-                  });
-                },
+      }
+    },
+    child: SafeArea(
+      top: false,
+      bottom: false, // Allow content to extend to the bottom
+      child: Consumer<UserProvider>(builder: (context, data, child) {
+        return Scaffold(
+          extendBody: true,
+          backgroundColor: Theme.of(context).colorScheme.lightWhite,
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(kToolbarHeight),
+            child: Builder(
+              builder: (newContext) => _getAppBar(newContext),
+            ),
+          ),
+          body: PageView(
+            controller: _pageController,
+            children: [
+              const HomePage(),
+              const AboutUs(fromTab: true),
+              const MyOrder(),
+              const Cart(
+                fromBottom: true,
               ),
-              bottomNavigationBar: _getBottomBar(),
-            );
-          },),),
-    );
-  }
+              const MyProfile(),
+            ],
+            onPageChanged: (index) {
+              setState(() {
+                if (!context
+                    .read<HomeProvider>()
+                    .animationController
+                    .isAnimating) {
+                  context.read<HomeProvider>().animationController.reverse();
+                  context.read<HomeProvider>().showBars(true);
+                }
+                _selBottom = index;
+                if (index == 3) {
+                  cartTotalClear();
+                }
+              });
+            },
+          ),
+          bottomNavigationBar: _getBottomBar(),
+        );
+      }),
+    ),
+  );
+}
 
   Future<void> initDynamicLinks() async {
     dynamicLinks.onLink.listen((dynamicLinkData) {

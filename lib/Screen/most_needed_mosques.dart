@@ -96,20 +96,26 @@ class _MostNeededMosquesState extends State<MostNeededMosques> {
           dropdownColor: Theme.of(context).cardColor, // clearly visible background
 
         items: mosques.map((mosque) {
-          return DropdownMenuItem<MosqueModel>(
-            value: mosque,
-            child: Text(
-              mosque.name?.isNotEmpty == true
-                  ? getTranslated(context, mosque.name!) ?? mosque.name!
-                  : getTranslated(context, 'UNNAMED_MOSQUE') ?? "Unnamed Mosque",
-              style:  TextStyle(
-                fontSize: 12,
-                          color: Theme.of(context).textTheme.bodyMedium!.color, // adaptive text color
+  final isArabic = Localizations.localeOf(context).languageCode == "ar";
 
-                ),
-            ),
-          );
-        }).toList(),
+  final mosqueName = isArabic
+      ? (mosque.nameAr?.isNotEmpty ?? false ? mosque.nameAr! : mosque.name)
+      : mosque.name;
+
+  final mosqueDisplay = "${mosque.id} - $mosqueName";
+
+  return DropdownMenuItem<MosqueModel>(
+    value: mosque,
+    child: Text(
+      mosqueDisplay,
+      style: TextStyle(
+        fontSize: 12,
+        color: Theme.of(context).textTheme.bodyMedium!.color,
+      ),
+    ),
+  );
+}).toList(),
+
         onChanged: isDisabled ? null : (MosqueModel? mosque) {
           if (mosque != null) {
             setState(() {

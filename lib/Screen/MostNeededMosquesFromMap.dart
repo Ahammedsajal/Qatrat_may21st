@@ -59,120 +59,136 @@ class _MostNeededMosquesFromMapState extends State<MostNeededMosquesFromMap> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getAppBar(
-        getTranslated(context, 'MOST_NEEDED_MOSQUES') ?? 'Most Needed Mosques',
-        context,
-      ),
-      body: Column(
-        children: [
-          // Display selected mosque (if any) inside a Card.
-         
-  Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-  child: _selectedMosque == null
-      ? Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            getTranslated(context, 'NO_MOSQUE_SELECTED') ?? "No Mosque Selected",
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            textAlign: TextAlign.center,
-          ),
-        )
-      : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              getTranslated(context, 'DELIVERING_TO_MOSQUE') ?? "Delivering to:",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: ListTile(
-                dense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                title: Text(
-                  _selectedMosque!.name?.isNotEmpty == true
-                      ? getTranslated(context, _selectedMosque!.name!) ?? _selectedMosque!.name!
-                      : getTranslated(context, 'UNNAMED_MOSQUE') ?? "Unnamed Mosque",
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                subtitle: _selectedMosque!.address?.isNotEmpty == true
-                    ? Text(
-                        _selectedMosque!.address!,
-                        style: const TextStyle(fontSize: 12),
-                      )
-                    : Text(
-                        getTranslated(context, 'NO_ADDRESS_PROVIDED') ?? "No Address Provided",
-                        style: const TextStyle(fontSize: 12),
-                      ),
-              ),
-            ),
-          ],
-        ),
-),
-Container(
-  margin: const EdgeInsets.only(top: 2), // Pull upward slightly.
-  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-  child: Row(
-    children: [
-      Expanded(
-        child: _ActionTile(
-          icon: Icons.clear,
-          title: getTranslated(context, 'CLEAR_MOSQUE') ?? "Clear Mosque",
-          onTap: () {
-            setState(() {
-              _selectedMosque = null;
-            });
-            context.read<MosqueProvider>().clearSelectedMosque();
-          },
-          fontSize: 12,
-          iconSize: 18,
-          verticalPadding: 6,
-        ),
-      ),
-      const SizedBox(width: 8),
-      Expanded(
-        child: _ActionTile(
-          icon: Icons.map,
-          title: getTranslated(context, 'CHANGE_MOSQUE') ?? "Change Mosque",
-          onTap: () {
-            Navigator.pushNamed(context, Routers.qatarMosquesScreen);
-          },
-          fontSize: 12,
-          iconSize: 18,
-          verticalPadding: 6,
-        ),
-      ),
-    ],
-  ),
-),
+  @override
+Widget build(BuildContext context) {
+  final isArabic = Localizations.localeOf(context).languageCode == "ar";
 
-          // Expanded product list content below.
-          const Expanded(
-            child: ProductListContent(
-              id: "111",
-              tag: false,
-              fromSeller: false,
-            ),
+  final displayName = _selectedMosque != null
+      ? isArabic
+          ? (_selectedMosque!.nameAr?.isNotEmpty ?? false
+              ? _selectedMosque!.nameAr!
+              : _selectedMosque!.name)
+          : _selectedMosque!.name
+      : "";
+
+  final displayAddress = _selectedMosque != null
+      ? isArabic
+          ? (_selectedMosque!.addressAr?.isNotEmpty ?? false
+              ? _selectedMosque!.addressAr!
+              : getTranslated(context, 'NO_ADDRESS_PROVIDED') ?? "No Address Provided")
+          : (_selectedMosque!.address?.isNotEmpty ?? false
+              ? _selectedMosque!.address!
+              : getTranslated(context, 'NO_ADDRESS_PROVIDED') ?? "No Address Provided")
+      : "";
+
+  return Scaffold(
+    appBar: getAppBar(
+      getTranslated(context, 'MOST_NEEDED_MOSQUES') ?? 'Most Needed Mosques',
+      context,
+    ),
+    body: Column(
+      children: [
+        // Display selected mosque (if any) inside a Card.
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: _selectedMosque == null
+              ? Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    getTranslated(context, 'NO_MOSQUE_SELECTED') ?? "No Mosque Selected",
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      getTranslated(context, 'DELIVERING_TO_MOSQUE') ?? "Delivering to:",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ListTile(
+                        dense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        title: Text(
+                          "${_selectedMosque!.id} - $displayName",
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          displayAddress,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+
+        // Clear or change mosque selection
+        Container(
+          margin: const EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: _ActionTile(
+                  icon: Icons.clear,
+                  title: getTranslated(context, 'CLEAR_MOSQUE') ?? "Clear Mosque",
+                  onTap: () {
+                    setState(() {
+                      _selectedMosque = null;
+                    });
+                    context.read<MosqueProvider>().clearSelectedMosque();
+                  },
+                  fontSize: 12,
+                  iconSize: 18,
+                  verticalPadding: 6,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ActionTile(
+                  icon: Icons.map,
+                  title: getTranslated(context, 'CHANGE_MOSQUE') ?? "Change Mosque",
+                  onTap: () {
+                    Navigator.pushNamed(context, Routers.qatarMosquesScreen);
+                  },
+                  fontSize: 12,
+                  iconSize: 18,
+                  verticalPadding: 6,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+
+        // Product list content below.
+        const Expanded(
+          child: ProductListContent(
+            id: "111",
+            tag: false,
+            fromSeller: false,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 }
 
 class _ActionTile extends StatelessWidget {

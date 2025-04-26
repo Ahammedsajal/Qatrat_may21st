@@ -77,8 +77,8 @@ class StateProduct extends State<ProductListScreen>
   bool productFetchingIsOngoing = false;
   List<Product> productList = [];
   List<Product> tempList = [];
-  String sortBy = 'p.id';
-  String orderBy = "DESC";
+  String sortBy = 'pv.price';
+  String orderBy = "ASC";
   int offset = 0;
   int total = 0;
   String? totalProduct;
@@ -209,12 +209,15 @@ class StateProduct extends State<ProductListScreen>
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: widget.fromSeller!
-            ? null
-            : getAppBar(
-                widget.name == null
-                    ? getTranslated(context, 'ALL_PRODUCTS_LBL')!
-                    : widget.name!,
-                context,),
+    ? null
+    : getAppBar(
+        widget.name == null
+            ? getTranslated(context, 'ALL_PRODUCTS_LBL')!
+            : // run your category key through getTranslated, falling back to the raw name
+            (getTranslated(context, widget.name!) ?? widget.name!),
+        context,
+      ),
+
         body: _isNetworkAvail
             ? Stack(
                 children: <Widget>[
