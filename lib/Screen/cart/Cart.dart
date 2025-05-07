@@ -3946,16 +3946,6 @@ void checkout() {
                                             padding:
                                                 const EdgeInsets.only(right: 10),
                                             child: SimBtn(
-<<<<<<< HEAD
-  height: 35,
-  width: 0.4,
-  title: getTranslated(context, 'PLACE_ORDER'),
-  onBtnSelected: () async {
-    // Reset the place order flag
-    checkoutState?.call(() {
-      _placeOrder = false;
-    });
-=======
                                               height: 35,
                                               width: 0.4,
                                               title: getTranslated(
@@ -3965,55 +3955,11 @@ void checkout() {
                                                 checkoutState?.call(() {
                                                   _placeOrder = false;
                                                 });
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
 
-<<<<<<< HEAD
-    final selectedMosque = context.read<MosqueProvider>().selectedMosque;
-
-    // ─── Validate mosque selection ─────────────────────────────
-    if (selectedMosque == null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const QatarMosques(isFromCheckout: true),
-        ),
-      ).then((value) {
-        checkoutState?.call(() {
-          _placeOrder = true;
-        });
-      });
-      return;
-    }
-=======
                                                 final selectedMosque = context
                                                     .read<MosqueProvider>()
                                                     .selectedMosque;
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
 
-<<<<<<< HEAD
-    // ─── Validate payment method ───────────────────────────────
-    if (paymentMethod == null || paymentMethod!.isEmpty) {
-      msg = getTranslated(context, 'payWarning');
-      Navigator.pushNamed(
-        context,
-        Routers.paymentScreen,
-        arguments: {
-          "update": updateCheckout,
-          "msg": msg,
-        },
-      ).then((value) async {
-        if (cartList[0].productList![0].productType != 'digital_product' &&
-            isStorePickUp == "false" &&
-            !deliverable) {
-          await checkDeliverable(2, showErrorMessage: false);
-        }
-        checkoutState?.call(() {
-          _placeOrder = true;
-        });
-      });
-      return;
-    }
-=======
                                                 // ── 1. Validate mosque ──
                                                 if (selectedMosque == null) {
                                                   await Navigator.push(
@@ -4030,37 +3976,7 @@ void checkout() {
                                                   });
                                                   return;
                                                 }
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
 
-<<<<<<< HEAD
-    // ─── Validate delivery date ────────────────────────────────
-    if (cartList[0].productList![0].productType != 'digital_product' &&
-        isTimeSlot! &&
-        (isLocalDelCharge == null || isLocalDelCharge!) &&
-        int.parse(allowDay!) > 0 &&
-        (selDate == null || selDate!.isEmpty) &&
-        IS_LOCAL_ON != '0') {
-      msg = getTranslated(context, 'dateWarning');
-      Navigator.pushNamed(
-        context,
-        Routers.paymentScreen,
-        arguments: {
-          "update": updateCheckout,
-          "msg": msg,
-        },
-      ).then((value) async {
-        if (cartList[0].productList![0].productType != 'digital_product' &&
-            isStorePickUp == "false" &&
-            !deliverable) {
-          await checkDeliverable(2, showErrorMessage: false);
-        }
-        checkoutState?.call(() {
-          _placeOrder = true;
-        });
-      });
-      return;
-    }
-=======
                                                 // ── 2. Validate payment ──
                                                 if (paymentMethod == null ||
                                                     paymentMethod!.isEmpty) {
@@ -4089,37 +4005,7 @@ void checkout() {
                                                   });
                                                   return;
                                                 }
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
 
-<<<<<<< HEAD
-    // ─── Validate delivery time ────────────────────────────────
-    if (cartList[0].productList![0].productType != 'digital_product' &&
-        isTimeSlot! &&
-        (isLocalDelCharge == null || isLocalDelCharge!) &&
-        timeSlotList.isNotEmpty &&
-        (selTime == null || selTime!.isEmpty) &&
-        IS_LOCAL_ON != '0') {
-      msg = getTranslated(context, 'timeWarning');
-      Navigator.pushNamed(
-        context,
-        Routers.paymentScreen,
-        arguments: {
-          "update": updateCheckout,
-          "msg": msg,
-        },
-      ).then((value) async {
-        if (cartList[0].productList![0].productType != 'digital_product' &&
-            isStorePickUp == "false" &&
-            !deliverable) {
-          await checkDeliverable(2, showErrorMessage: false);
-        }
-        checkoutState?.call(() {
-          _placeOrder = true;
-        });
-      });
-      return;
-    }
-=======
                                                 // ── 3. Validate date ──
                                                 if (cartList[0]
                                                             .productList![0]
@@ -4157,15 +4043,7 @@ void checkout() {
                                                   });
                                                   return;
                                                 }
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
 
-<<<<<<< HEAD
-    // ─── Validate cart amount ──────────────────────────────────
-    if (double.parse(MIN_ALLOW_CART_AMT!) > originalPrice) {
-      setSnackbar(getTranslated(context, 'MIN_CART_AMT')!, context);
-      return;
-    }
-=======
                                                 // ── 4. Validate time ──
                                                 if (cartList[0]
                                                             .productList![0]
@@ -4203,17 +4081,7 @@ void checkout() {
                                                   });
                                                   return;
                                                 }
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
 
-<<<<<<< HEAD
-    // ─── Validate deliverability ───────────────────────────────
-    if (cartList[0].productList![0].productType != 'digital_product' &&
-        isStorePickUp == "false" &&
-        !deliverable) {
-      checkDeliverable(1);
-      return;
-    }
-=======
                                                 // ── 5. Min-cart amount ──
                                                 if (double.parse(
                                                         MIN_ALLOW_CART_AMT!) >
@@ -4225,22 +4093,7 @@ void checkout() {
                                                   );
                                                   return;
                                                 }
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
 
-<<<<<<< HEAD
-    // ─── Final order confirmation ──────────────────────────────
-    if (confDia) {
-      if (!context.read<CartProvider>().isProgress) {
-        confirmDialog(cartList);
-        setState(() {
-          confDia = false;
-        });
-      }
-    }
-  },
-),
-
-=======
                                                 // ── 6. Deliverability ──
                                                 if (cartList[0]
                                                             .productList![0]
@@ -4265,7 +4118,6 @@ void checkout() {
                                                 }
                                               },
                                             ),
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
                                           ),
                                         ],
                                       ),
@@ -4472,19 +4324,25 @@ Future<void> placeOrder(String? tranId) async {
   request.fields[WALLET_BAL_USED] = usedBalance.toString();
   request.fields[ORDER_NOTE] = noteC.text;
   // Add mosque details to the request
+final MosqueModel? selectedMosque =
+    context.read<MosqueProvider>().selectedMosque;
 
-// NEW one single integer is enough
- final MosqueModel? selectedMosque =
-     context.read<MosqueProvider>().selectedMosque;
+if (selectedMosque != null) {
+  request.fields['mosque_id']         = selectedMosque.id ?? '0';          // <- key MUST be mosque_id
+  request.fields['mosque_name']       = selectedMosque.name ?? '';
+  request.fields['mosque_name_ar']    = selectedMosque.nameAr ?? '';
+  request.fields['mosque_address']    = selectedMosque.address ?? '';
+  request.fields['mosque_address_ar'] = selectedMosque.addressAr ?? '';
+  request.fields['mosque_latitude']   = '${selectedMosque.latitude ?? ''}';
+  request.fields['mosque_longitude']  = '${selectedMosque.longitude ?? ''}';
+} 
 
- if (selectedMosque != null) {
-   request.fields['mosque_id'] = selectedMosque.id.toString();
- }
 
   if (IS_LOCAL_PICKUP != "1" || isStorePickUp != "true") {
     request.fields[DEL_CHARGE] = deliveryCharge.toString();
   }
   
+  request.fields[ADD_ID] = selectedMosque != null ? selectedMosque.id! : "999";
   if (IS_LOCAL_PICKUP == "1") {
     request.fields[LOCAL_PICKUP] = isStorePickUp == "true" ? "1" : "0";
   }
@@ -4609,7 +4467,7 @@ Future<void> initiateSkipCashPayment(
   final phone = userProvider.mobile.isNotEmpty ? userProvider.mobile : '97412345678';
   final email = userProvider.email.isNotEmpty ? userProvider.email : 'user@example.com';
 
-  final MosqueModel? selectedMosque = context.read<MosqueProvider>().selectedMosque;
+final MosqueModel? selectedMosque = context.read<MosqueProvider>().selectedMosque;
 
 final cartData = {
   'total': totalPrice,
@@ -5242,27 +5100,8 @@ void setSnackbar(String message, BuildContext context) {
 // mobileController.text = context.read<UserProvider>().mobile ?? '';
 
 Widget address() {
-<<<<<<< HEAD
-  final selectedMosque = context.watch<MosqueProvider>().selectedMosque;
-  final isArabic = Localizations.localeOf(context).languageCode == "ar";
-  final displayName = selectedMosque != null
-      ? (isArabic
-          ? (selectedMosque.nameAr?.isNotEmpty ?? false ? selectedMosque.nameAr! : selectedMosque.name)
-          : selectedMosque.name)
-      : null;
-  final displayAddress = selectedMosque != null
-      ? (isArabic
-          ? (selectedMosque.addressAr?.isNotEmpty ?? false
-              ? selectedMosque.addressAr!
-              : getTranslated(context, "NO_ADDRESS")!)
-          : (selectedMosque.address?.isNotEmpty ?? false
-              ? selectedMosque.address!
-              : getTranslated(context, "NO_ADDRESS")!))
-      : null;
-=======
   final selectedMosque = context.watch<MosqueProvider>().selectedMosque;
   final isArabic       = Localizations.localeOf(context).languageCode == 'ar';
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
 
   final displayName = selectedMosque == null
       ? null
@@ -5311,32 +5150,6 @@ Widget address() {
           const SizedBox(height: 12),
           const Divider(height: 0),
 
-<<<<<<< HEAD
-          const Divider(),
-
-          // ─── Mosque Selection ───────────────────────────────────────
-          if (selectedMosque == null) ...[
-            Center(
-              child: AppBtn(
-                height: 45,
-                title: getTranslated(context, 'SELECT_MOSQUE_BTN') ?? 'Select a Mosque for Delivery',
-                icon: const Icon(Icons.map_outlined, color: Colors.white, size: 20),
-                onBtnSelected: _navigateToMosqueSelection,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Padding(
-              padding: const EdgeInsets.only(top: 5.0),
-              child: Center(
-                child: Text(
-                  getTranslated(context, 'MOSQUE_SELECTION_MANDATORY') ??
-                      'Mosque selection is required to proceed.',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.red,
-                    fontSize: 12,
-                  ),
-                  textAlign: TextAlign.center,
-=======
           /// ── Mosque selector / card ─────────────────────────────────
           const SizedBox(height: 12),
           if (selectedMosque == null) ...[
@@ -5374,7 +5187,6 @@ Widget address() {
                 title: Text(
                   displayName ?? 'N/A',
                   style: const TextStyle(fontWeight: FontWeight.bold),
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
                 ),
                 subtitle: Text(
                   displayAddress ?? 'N/A',
@@ -5397,33 +5209,10 @@ Widget address() {
                 ),
               ),
             ),
-          ] else ...[
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.mosque_outlined,
-                  color: Theme.of(context).colorScheme.primarytheme),
-              title: Text(displayName ?? 'N/A',
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(displayAddress ?? 'N/A',
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
-              trailing: TextButton(
-                child: Text(getTranslated(context, 'CHANGE') ?? 'Change'),
-                onPressed: _navigateToMosqueSelection,
-                style: TextButton.styleFrom(
-                    foregroundColor:
-                        Theme.of(context).colorScheme.primarytheme),
-              ),
-              isThreeLine: true,
-            ),
-            const SizedBox(height: 8),
           ],
 
-<<<<<<< HEAD
-          // ─── Mobile Number Field ────────────────────────────────────────
-=======
           /// ── Mobile number field ────────────────────────────────────
           const SizedBox(height: 20),
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
           TextField(
             controller: mobileController,
             keyboardType:
@@ -5433,35 +5222,12 @@ Widget address() {
             onEditingComplete: () => FocusScope.of(context).unfocus(),
             style: Theme.of(context).textTheme.bodyMedium,
             decoration: InputDecoration(
-<<<<<<< HEAD
-              labelText: getTranslated(context, 'MOBILE_NUMBER_LABEL') ??
-                  'Mobile Number',
-              labelStyle: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white70
-                    : Colors.grey[800],
-              ),
-              hintText:
-                  getTranslated(context, 'ENTER_MOBILE_NUMBER') ??
-                      'Enter mobile number',
-              hintStyle: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white54
-                    : Colors.grey[500],
-              ),
-              prefixIcon: Icon(
-                Icons.phone_android,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-=======
               labelText: getTranslated(context, 'MOBILE_NUMBER_LABEL') ??
                   'Mobile Number',
               hintText: getTranslated(context, 'ENTER_MOBILE_NUMBER') ??
                   'Enter mobile number',
               prefixIcon: Icon(Icons.phone_android,
                   color: Theme.of(context).colorScheme.primary),
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
               suffixIcon: IconButton(
                 icon: const Icon(Icons.check),
                 onPressed: () => FocusScope.of(context).unfocus(),
@@ -5469,13 +5235,8 @@ Widget address() {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
-<<<<<<< HEAD
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-=======
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
             ),
           ),
         ],
@@ -5518,62 +5279,6 @@ Widget _buildMosqueSelectionSection() {
           : (selectedMosque!.address?.isNotEmpty ?? false ? selectedMosque!.address! : getTranslated(context, "NO_ADDRESS")!))
       : null;
 
-<<<<<<< HEAD
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          getTranslated(context, 'DELIVERY_MOSQUE') ?? 'Delivery Mosque',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.fontColor,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 10),
-        selectedMosque == null
-            ? Center(
-                child: AppBtn(
-                  height: 45,
-                  title: getTranslated(context, 'SELECT_MOSQUE_BTN') ?? 'Select a Mosque for Delivery',
-                  icon: const Icon(Icons.map_outlined, color: Colors.white, size: 20),
-                  onBtnSelected: _navigateToMosqueSelection,
-                ),
-              )
-            : Card(
-                elevation: 1,
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                child: ListTile(
-                  leading: Icon(Icons.mosque_outlined, color: Theme.of(context).colorScheme.primarytheme),
-                  title: Text(displayName ?? 'N/A', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(displayAddress ?? 'N/A', maxLines: 2, overflow: TextOverflow.ellipsis),
-                  trailing: TextButton(
-                    child: Text(getTranslated(context, 'CHANGE') ?? 'Change'),
-                    onPressed: _navigateToMosqueSelection,
-                    style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.primarytheme),
-                  ),
-                  isThreeLine: true,
-                ),
-              ),
-        const SizedBox(height: 5),
-        if (selectedMosque == null)
-           Padding(
-             padding: const EdgeInsets.only(top: 5.0),
-             child: Center(
-               child: Text(
-                 getTranslated(context, 'MOSQUE_SELECTION_MANDATORY') ?? 'Mosque selection is required to proceed.',
-                 style: TextStyle(color: Theme.of(context).colorScheme.red, fontSize: 12),
-                 textAlign: TextAlign.center,
-               ),
-             ),
-           ),
-      ],
-    ),
-  );
-}
-=======
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
     child: Column(
@@ -5628,7 +5333,6 @@ Widget _buildMosqueSelectionSection() {
     ),
   );
 }
->>>>>>> 75af94856b5abc76c6a84fb9742bf9c3bf79b303
 
 
 
