@@ -7,7 +7,7 @@ class MosqueProvider extends ChangeNotifier {
   MosqueModel? get selectedMosque => _selectedMosque;
 
   /// Set a new selected Mosque and notify listeners
-  void setSelectedMosque(MosqueModel mosque) {
+  void setSelectedMosque(MosqueModel? mosque) {
     _selectedMosque = mosque;
     notifyListeners();
   }
