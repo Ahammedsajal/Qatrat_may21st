@@ -31,16 +31,22 @@ class DefaultFirebaseOptions {
     }
   }
 
- static const FirebaseOptions web = FirebaseOptions(
-  apiKey: "AIzaSyDxsDoI-paaicCbxq3MaNA13HhX1J3Y5uI",
-  authDomain: "customer-app-cad10.firebaseapp.com",
-  projectId: "customer-app-cad10",
-  storageBucket: "customer-app-cad10.firebasestorage.app",
-  messagingSenderId: "388298698922",
-  appId: "1:388298698922:web:a9056c127fddb7bab0a0d3",
-  measurementId: "G-Q51Z65FQ5W"
-);
+  // ─────────────────────────────────────────────────────────────────────────────
+  // WEB
+  // ─────────────────────────────────────────────────────────────────────────────
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDxsDoI-paaicCbxq3MaNA13HhX1J3Y5uI',
+    authDomain: 'customer-app-cad10.firebaseapp.com',
+    projectId: 'customer-app-cad10',
+    storageBucket: 'customer-app-cad10.firebasestorage.app',
+    messagingSenderId: '388298698922',
+    appId: '1:388298698922:web:a9056c127fddb7bab0a0d3',
+    measurementId: 'G-Q51Z65FQ5W',
+  );
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ANDROID
+  // ─────────────────────────────────────────────────────────────────────────────
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAkrc_R44PxJ9yFitNMWbp_IdTUiqYBpRs',
     appId: '1:388298698922:android:a71fd2c6b73fe285b0a0d3',
@@ -49,16 +55,23 @@ class DefaultFirebaseOptions {
     storageBucket: 'customer-app-cad10.firebasestorage.app',
   );
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // **UPDATED** iOS – matches GoogleService-Info.plist exactly
+  // ─────────────────────────────────────────────────────────────────────────────
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAL5fpg6ptmwGRWlGTC9kI6_dqxuKqChZc',
-    appId: '1:388298698922:ios:f192c13b1a0e203bb0a0d3',
+    apiKey: 'AIzaSyBZzPF-TUQHk4lUxNOLRMZxfHctui28w_Q',
+    appId: '1:388298698922:ios:d3bf8338ed31a9e3b0a0d3',
     messagingSenderId: '388298698922',
     projectId: 'customer-app-cad10',
-    storageBucket: 'customer-app-cad10.appspot.com',
-    iosClientId: '388298698922-6nrkjtfh0u9b3dgqvep9k70q1ncennak.apps.googleusercontent.com', // Optional
-    iosBundleId: 'com.wrteam.customer', // Replace with your iOS bundle ID
+    storageBucket: 'customer-app-cad10.firebasestorage.app',
+    iosClientId:
+        '388298698922-gftnl5f973cm8jufpkaqgu0p3dkamvno.apps.googleusercontent.com',
+    iosBundleId: 'com.customersingle.customer',
   );
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // WINDOWS
+  // ─────────────────────────────────────────────────────────────────────────────
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyDxsDoI-paaicCbxq3MaNA13HhX1J3Y5uI',
     appId: '1:388298698922:web:e1a5130c796585d7b0a0d3',
