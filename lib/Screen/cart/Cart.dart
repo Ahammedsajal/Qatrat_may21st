@@ -4609,18 +4609,21 @@ Future<void> initiateSkipCashPayment(
   final phone = userProvider.mobile.isNotEmpty ? userProvider.mobile : '97412345678';
   final email = userProvider.email.isNotEmpty ? userProvider.email : 'user@example.com';
 
-  final cartData = {
-    'total': totalPrice,
-    'delivery_charge': deliveryCharge,
-    'product_variant_id': cartItem.varientId,
-    'quantity': cartItem.qty,
-    'user_id': userProvider.userId,
-    'address_id': '999',
-    'local_pickup': isStorePickUp == "true" ? '1' : '0',
-    'mosque_name': 'Default Mosque',
-    'delivery_date': selDate,
-    'delivery_time': selTime,
-  };
+  final MosqueModel? selectedMosque = context.read<MosqueProvider>().selectedMosque;
+
+final cartData = {
+  'total': totalPrice,
+  'delivery_charge': deliveryCharge,
+  'product_variant_id': cartItem.varientId,
+  'quantity': cartItem.qty,
+  'user_id': userProvider.userId,
+  'mosque_id': selectedMosque?.id, // ✅ ADD THIS LINE
+  'mobile': userProvider.mobile,    // ✅ ALSO INCLUDE THIS
+  'local_pickup': isStorePickUp == "true" ? '1' : '0',
+  'delivery_date': selDate,
+  'delivery_time': selTime,
+};
+
 
   final body = {
     'amount': finalAmount.toStringAsFixed(2),
