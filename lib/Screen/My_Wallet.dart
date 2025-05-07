@@ -9,7 +9,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:my_fatoorah/my_fatoorah.dart';
-import 'package:paytm_allinonesdk/paytm_allinonesdk.dart';
 import 'package:provider/provider.dart';
 import '../Helper/ApiBaseHelper.dart';
 import '../Helper/Color.dart';
@@ -1256,36 +1255,7 @@ class StateWallet extends State<MyWalletScreen> with TickerProviderStateMixin {
       USER_ID: context.read<UserProvider>().userId,
       ORDER_ID: orderId,
     };
-    try {
-      apiBaseHelper.postAPICall(getPytmChecsumkApi, parameter).then(
-          (getdata) async {
-        String? txnToken;
-        setState(() {
-          txnToken = getdata["txn_token"];
-        });
-        final response = await AllInOneSdk.startTransaction(paytmMerId!, orderId,
-            totalPrice as String, txnToken!, callBackUrl, payTesting, false,);
-        if (response!['errorCode'] == null) {
-          if (response['STATUS'] == 'TXN_SUCCESS') {
-            setSnackbar('Transaction Successful', context);
-            if (mounted) {
-              setState(() {
-                _isProgress = false;
-              });
-            }
-            await getUserWalletBalanceFromTransactionAPI();
-          }
-          setSnackbar(response['STATUS'], context);
-        } else {
-          paymentResponse = response['RESPMSG'];
-        }
-        setSnackbar(paymentResponse!, context);
-      }, onError: (error) {
-        setSnackbar(error.toString(), context);
-      },);
-    } catch (e) {
-      print(e);
-    }
+    
   }
 
   stripePayment(
