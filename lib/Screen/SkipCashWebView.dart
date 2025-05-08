@@ -1,20 +1,23 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:customer/app/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import '../Helper/String.dart';
-import '../Helper/Constant.dart';
-import '../utils/Hive/hive_utils.dart';
-import '../Provider/CartProvider.dart';
+import '../Helper/routes.dart';
+import '../HELPER/Constant.dart';
 import '../HELPER/routes.dart';
+import '../Helper/String.dart';
+import '../Provider/CartProvider.dart';
+import '../utils/Hive/hive_utils.dart';
 
 class SkipCashWebView extends StatefulWidget {
   final String payUrl;
-  final String paymentId;
-  final Future<void> Function(String message) onSuccess;
-  final Function(String error) onError;
+  final String paymentId;                                   // ← kept for logging
+  final Future<void> Function(String message) onSuccess;    // callback to Checkout
+  final Function(String error) onError;                     // callback to Checkout
 
   const SkipCashWebView({
     Key? key,
@@ -30,98 +33,111 @@ class SkipCashWebView extends StatefulWidget {
 
 class _SkipCashWebViewState extends State<SkipCashWebView> {
   late final WebViewController _controller;
-  bool _isVerifying = false;
-  bool _isWebViewReady = false;
 
-  final String? jwtToken = HiveUtils.getJWT();
+  bool _isVerifying   = false;   // block double-verify
+  bool _isWebReady    = false;   // show loader until first page done
+  bool _paymentDone   = false;   // ignore late Web-resource errors
+
+  final String? _jwt = HiveUtils.getJWT();
 
   @override
   void initState() {
     super.initState();
-    final PlatformWebViewControllerCreationParams params =
-        const PlatformWebViewControllerCreationParams();
-    _controller = WebViewController.fromPlatformCreationParams(params);
+
+    final params   = const PlatformWebViewControllerCreationParams();
+    _controller    = WebViewController.fromPlatformCreationParams(params);
 
     _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (url) {
-            print('Loaded URL: \$url');
+            debugPrint('[SkipCash] Loaded ⇒ $url');
 
             if (!_isVerifying && url.contains('skipcash-success')) {
               final uri = Uri.parse(url);
-              final paymentIdFromUrl = uri.queryParameters['id'];
-              if (paymentIdFromUrl != null && paymentIdFromUrl.isNotEmpty) {
-                _verifyPayment(paymentIdFromUrl);
+              final pid = uri.queryParameters['id'];
+              if (pid != null && pid.isNotEmpty) {
+                _verifyPayment(pid);
               } else {
                 widget.onError('Missing payment ID in return URL');
               }
             }
-
-            setState(() => _isWebViewReady = true);
+            if (mounted) setState(() => _isWebReady = true);
           },
           onNavigationRequest: (request) => NavigationDecision.navigate,
-          onWebResourceError: (error) {
-            widget.onError('WebView error: \${error.description}');
+          onWebResourceError: (err) {
+            if (_paymentDone) return; // ignore favicon / late errors
+            widget.onError('WebView error: ${err.description}');
           },
         ),
       )
       ..loadRequest(Uri.parse(widget.payUrl));
   }
 
+  /* ─────────────────────────────────────────────────────────────── */
+  /*  Verify with backend                                            */
+  /* ─────────────────────────────────────────────────────────────── */
   Future<void> _verifyPayment(String paymentId) async {
     if (_isVerifying) return;
     setState(() => _isVerifying = true);
 
-    final url = Uri.parse('\${baseUrl}verify_skipcash_payment');
-    print('[SkipCash] Verifying payment using POST: \$url');
+    final url = Uri.parse('${baseUrl}verify_skipcash_payment');
+    debugPrint('[SkipCash] POST verify ⇒ $url');
 
     try {
-      final response = await http.post(
+      final res = await http.post(
         url,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer \$jwtToken',
+          HttpHeaders.contentTypeHeader : 'application/json',
+          HttpHeaders.authorizationHeader: 'Bearer $_jwt',
         },
         body: jsonEncode({'payment_id': paymentId}),
       );
 
-      final data = jsonDecode(response.body);
-      print('[SkipCash] Verification response: \$data');
+      final data = jsonDecode(res.body);
+      debugPrint('[SkipCash] Verify response ⇒ $data');
 
-      if (response.statusCode == 200 && data['error'] == false) {
-        await widget.onSuccess(data['message'] ?? 'Order placed successfully');
+      if (res.statusCode == 200 && data['error'] == false) {
+        /* 1. mark as done so further web-errors are ignored */
+        _paymentDone = true;
 
-        // ✅ Clear cart and navigate to order success
-        if (mounted) {
-          Provider.of<CartProvider>(context, listen: false).clearCart();
+        /* 2. inform Checkout sheet */
+        await widget.onSuccess(data['message'] ?? 'Order placed');
 
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/order_success',
-            (route) => route.isFirst,
-          );
-        }
+        /* 3. clear local cart */
+        if (mounted) context.read<CartProvider>().clearCart();
+
+        /* 4. close WebView first … */
+        if (mounted) Navigator.of(context).pop();
+
+        /* 5. … then open Order-success on root navigator */
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.of(context, rootNavigator: true)
+              .pushNamedAndRemoveUntil(
+                Routers.orderSuccessScreen,
+                (route) => route.isFirst,
+              );
+        });
       } else {
         widget.onError(data['message'] ?? 'Payment verification failed.');
       }
     } catch (e) {
-      widget.onError('Verification failed: \$e');
+      widget.onError('Verification failed: $e');
     }
   }
+
+  /* ─────────────────────────────────────────────────────────────── */
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("SkipCash Payment")),
+      appBar: AppBar(title: const Text('SkipCash Payment')),
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (!_isWebViewReady)
-            const Center(
-              child: CircularProgressIndicator(),
-            ),
+          if (!_isWebReady)
+            const Center(child: CircularProgressIndicator()),
         ],
       ),
     );
