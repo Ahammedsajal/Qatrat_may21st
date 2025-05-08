@@ -4342,7 +4342,7 @@ if (selectedMosque != null) {
     request.fields[DEL_CHARGE] = deliveryCharge.toString();
   }
   
-  request.fields[ADD_ID] = selectedMosque != null ? selectedMosque.id! : "999";
+  request.fields[ADD_ID] =  selectedMosque!.id;
   if (IS_LOCAL_PICKUP == "1") {
     request.fields[LOCAL_PICKUP] = isStorePickUp == "true" ? "1" : "0";
   }
@@ -4461,11 +4461,11 @@ Future<void> initiateSkipCashPayment(
 
   final nameParts = userProvider.userName.isNotEmpty
       ? userProvider.userName.split(' ')
-      : ['John', 'Doe'];
+      : ['', ''];
   final firstName = nameParts[0];
-  final lastName = nameParts.length > 1 ? nameParts[1] : 'Doe';
-  final phone = userProvider.mobile.isNotEmpty ? userProvider.mobile : '97412345678';
-  final email = userProvider.email.isNotEmpty ? userProvider.email : 'user@example.com';
+  final lastName = nameParts.length > 1 ? nameParts[1] : '';
+  final phone = userProvider.mobile.isNotEmpty ? userProvider.mobile : '';
+  final email = userProvider.email.isNotEmpty ? userProvider.email : '';
 
 final MosqueModel? selectedMosque = context.read<MosqueProvider>().selectedMosque;
 
@@ -6063,9 +6063,7 @@ Widget _buildMosqueSelectionSection() {
       context.read<CartProvider>().setProgress(true);
       final parameter = {
         USER_ID: context.read<UserProvider>().userId,
-        ADD_ID: (selectedMosque?.id?.isNotEmpty == true)
-            ? selectedMosque!.id
-            : "999",
+        ADD_ID : selectedMosque!.id,
       };
       await apiBaseHelper.postAPICall(checkCartDelApi, parameter).then(
         (getdata) {
