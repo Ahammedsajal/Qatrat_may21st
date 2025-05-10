@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
+import '../app/routes.dart';
 import '../HELPER/Constant.dart';
-import '../HELPER/routes.dart';
 import '../Provider/CartProvider.dart';
 import '../utils/Hive/hive_utils.dart';
 
