@@ -5158,7 +5158,7 @@ Widget address() {
               child: SimBtn(
                 height: 44,
                 width: 1, // SimBtn uses the fractionally sized width
-                title: getTranslated(context, 'SELECT_MOSQUE_BTN') ??
+                title: getTranslated(context, 'SELECT_MOSQUE') ??
                     'Select a Mosque for Delivery',
                 onBtnSelected: _navigateToMosqueSelection,
               ),
@@ -5296,7 +5296,7 @@ Widget _buildMosqueSelectionSection() {
             ? Center(
                 child: AppBtn(
                   padding: EdgeInsets.symmetric(vertical: 12.0),
-                  title: getTranslated(context, 'SELECT_MOSQUE_BTN') ?? 'Select a Mosque for Delivery',
+                  title: getTranslated(context, 'SELECT_MOSQUE') ?? 'Select a Mosque for Delivery',
                   // Removed the 'icon' parameter as it is not defined in the 'AppBtn' widget.
                   onBtnSelected: _navigateToMosqueSelection,
                 ),
