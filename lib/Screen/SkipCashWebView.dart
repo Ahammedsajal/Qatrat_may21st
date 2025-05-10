@@ -48,13 +48,14 @@ class _SkipCashWebViewState extends State<SkipCashWebView> {
         NavigationDelegate(
           onNavigationRequest: (req) {
             final url = req.url;
-            // ① Intercept the success‐URL before WebView tries to load it
+            // Intercept the success‐URL
             if (url.contains('skipcash-success')) {
               final pid = Uri.parse(url).queryParameters['id'];
               if (pid != null && pid.isNotEmpty) {
                 _verifyPayment(pid);
               } else {
-                widget.onError('Missing payment ID in return URL');
+                // you can still log this, but skip the popup:
+                debugPrint('Missing payment ID in return URL');
               }
               return NavigationDecision.prevent;
             }
@@ -64,9 +65,8 @@ class _SkipCashWebViewState extends State<SkipCashWebView> {
             if (mounted) setState(() => _isWebReady = true);
           },
           onWebResourceError: (err) {
-            // ② Ignore any resource errors once we've already succeeded
-            if (_paymentDone) return;
-            widget.onError('WebView error: ${err.description}');
+            // Fully suppress any "WebView error" popups:
+            // (we do nothing here)
           },
         ),
       )
@@ -96,7 +96,7 @@ class _SkipCashWebViewState extends State<SkipCashWebView> {
       if (res.statusCode == 200 && data['error'] == false) {
         _paymentDone = true;
 
-        // let the original sheet know we succeeded
+        // notify checkout sheet
         await widget.onSuccess(data['message'] ?? 'Order placed');
 
         // clear local cart
@@ -105,18 +105,21 @@ class _SkipCashWebViewState extends State<SkipCashWebView> {
         // close this WebView
         if (mounted) Navigator.of(context).pop();
 
-        // then push your success screen
+        // push success screen
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
-            Routers.orderSuccessScreen,
-            (route) => route.isFirst,
-          );
+          Navigator.of(context, rootNavigator: true)
+              .pushNamedAndRemoveUntil(
+                Routers.orderSuccessScreen,
+                (route) => route.isFirst,
+              );
         });
       } else {
-        widget.onError(data['message'] ?? 'Payment verification failed.');
+        // you can choose to log or ignore
+        debugPrint('Payment verification failed: ${data['message']}');
       }
     } catch (e) {
-      widget.onError('Verification failed: $e');
+      // likewise, just log
+      debugPrint('Verification failed: $e');
     }
   }
 
