@@ -4446,7 +4446,10 @@ Future<void> initiateSkipCashPayment(
     return;
   }
 
-  final cartItem = cartProvider.cartList[0];
+  // ── BUILD COMMA-SEPARATED VARIANT & QUANTITY LISTS ──
+  final cartList   = cartProvider.cartList;
+  final variantIds = cartList.map((e) => e.varientId).join(',');
+  final quantities = cartList.map((e) => e.qty).join(',');
 
   double finalAmount = usedBalance > 0
       ? totalPrice
@@ -4467,33 +4470,32 @@ Future<void> initiateSkipCashPayment(
   final phone = userProvider.mobile.isNotEmpty ? userProvider.mobile : '';
   final email = userProvider.email.isNotEmpty ? userProvider.email : '';
 
-final MosqueModel? selectedMosque = context.read<MosqueProvider>().selectedMosque;
+  final MosqueModel? selectedMosque = context.read<MosqueProvider>().selectedMosque;
 
-final cartData = {
-  'total': totalPrice,
-  'delivery_charge': deliveryCharge,
-  'product_variant_id': cartItem.varientId,
-  'quantity': cartItem.qty,
-  'user_id': userProvider.userId,
-  'mosque_id': selectedMosque?.id, // ✅ ADD THIS LINE
-  'mobile': userProvider.mobile,    // ✅ ALSO INCLUDE THIS
-  'local_pickup': isStorePickUp == "true" ? '1' : '0',
-  'delivery_date': selDate,
-  'delivery_time': selTime,
-};
-
+  // ── SEND FULL CART DATA TO BACKEND ──
+  final cartData = {
+    'total':              totalPrice,
+    'delivery_charge':    deliveryCharge,
+    'product_variant_id': variantIds,   // e.g. "1,17"
+    'quantity':           quantities,   // e.g. "2,1"
+    'user_id':            userProvider.userId,
+    'mosque_id':          selectedMosque?.id,
+    'mobile':             phone,
+    'local_pickup':       isStorePickUp == "true" ? '1' : '0',
+    'delivery_date':      selDate,
+    'delivery_time':      selTime,
+  };
 
   final body = {
-    'amount': finalAmount.toStringAsFixed(2),
-    'order_id': orderId,
-    'device_os': Platform.isAndroid ? 'android' : 'ios',
-    'fcm_id': '',
-    'cart_data': cartData, // ✅ Send as nested object
-
+    'amount':     finalAmount.toStringAsFixed(2),
+    'order_id':   orderId,
+    'device_os':  Platform.isAndroid ? 'android' : 'ios',
+    'fcm_id':     '',
+    'cart_data':  cartData,
     'first_name': firstName,
-    'last_name': lastName,
-    'phone': phone,
-    'email': email,
+    'last_name':  lastName,
+    'phone':      phone,
+    'email':      email,
   };
 
   try {
@@ -4523,13 +4525,13 @@ final cartData = {
         final route = MaterialPageRoute(
           builder: (context) => SkipCashWebView(
             payUrl: result['payUrl'],
-            paymentId: result['transactionId'], // required field for verification
+            paymentId: result['transactionId'],
             onSuccess: (transactionId) async {
-              await placeOrder(transactionId); // place order only after verification success
+              await placeOrder(transactionId);
             },
             onError: (error) {
               setSnackbar(error, context);
-              deleteOrders(orderId); // Optional: clear abandoned order
+              deleteOrders(orderId);
               if (context.mounted) Navigator.pop(context);
             },
           ),
@@ -4553,7 +4555,6 @@ final cartData = {
     _log.info('END: initiateSkipCashPayment');
   }
 }
-
 
 
 
@@ -5165,7 +5166,7 @@ Widget address() {
             ),
             const SizedBox(height: 6),
             Text(
-              getTranslated(context, 'NO_MOSQUE_SELECTED') ??
+              getTranslated(context, 'MOSQUE_SELECTION_MANDATORY') ??
                   'Mosque selection is required to proceed.',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.error,
