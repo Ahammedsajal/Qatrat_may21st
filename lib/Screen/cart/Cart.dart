@@ -5165,7 +5165,7 @@ Widget address() {
             ),
             const SizedBox(height: 6),
             Text(
-              getTranslated(context, 'MOSQUE_SELECTION_MANDATORY') ??
+              getTranslated(context, 'NO_MOSQUE_SELECTED') ??
                   'Mosque selection is required to proceed.',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.error,
