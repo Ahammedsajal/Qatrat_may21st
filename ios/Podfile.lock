@@ -56,10 +56,10 @@ PODS:
   - Firebase/DynamicLinks (11.6.0):
     - Firebase/CoreOnly
     - FirebaseDynamicLinks (~> 11.6.0)
-  - Firebase/Messaging (11.6.0):
+  - Firebase/Messaging ((11.10.0)):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 11.6.0)
-  - firebase_auth (5.4.1):
+    - FirebaseMessaging (~> (11.10.0))
+  - firebase_auth (5.5.3):
     - Firebase/Auth (= 11.6.0)
     - firebase_core
     - Flutter
