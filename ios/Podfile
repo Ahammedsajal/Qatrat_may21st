@@ -45,24 +45,18 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
 
-    # --- PATCH: ensure FirebaseAuth verifyPhoneNumber runs on main thread with a UI delegate ---
-    if target.name == 'firebase_auth'
-      target.source_build_phase.files.each do |file_ref|
-        path = file_ref.file_ref.real_path.to_path
-        next unless path.end_with?('FLTFirebaseAuthPlugin.m')
-        text = File.read(path)
-
-        # wrap the verifyPhoneNumber call
-        patched = text.gsub(
-          /PhoneAuthProvider\.provider\(\)\.verifyPhoneNumber\(/,
-          <<~PATCH
-            dispatch_async(dispatch_get_main_queue(), ^{
-              UIViewController *root = UIApplication.sharedApplication.delegate.window.rootViewController;
-              [PhoneAuthProvider.provider verifyPhoneNumber(
-          PATCH
-        )
-
-        File.write(path, patched)
+    if target.name == 'FirebaseAuth'
+      firebase_auth = installer.pods_project.pod_group('Pods/Pods.xcodeproj?FirebaseAuth')
+      files = firebase_auth.files_group.files
+      files.each do |file|
+        if file.path.end_with? 'PhoneAuthProvider.swift'
+          contents = File.read(file.real_path)
+          patched = contents.gsub(
+            /PhoneAuthProvider\.provider\(\)\.verifyPhoneNumber\(/,
+            "DispatchQueue.main.async { PhoneAuthProvider.provider().verifyPhoneNumber("
+          )
+          File.write(file.real_path, patched)
+        end
       end
     end
   end
