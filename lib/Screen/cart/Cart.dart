@@ -4370,7 +4370,7 @@ Future<void> initiateSkipCashPayment(
       : ['John', 'Doe'];
   final firstName = nameParts[0];
   final lastName = nameParts.length > 1 ? nameParts[1] : 'Doe';
-  final phone = userProvider.mobile.isNotEmpty ? userProvider.mobile : '97412345678';
+  final phone = userProvider.mobile.isNotEmpty ? userProvider.mobile : '';
   final email = userProvider.email.isNotEmpty ? userProvider.email : 'user@example.com';
 
   final cartData = {
