@@ -4248,7 +4248,7 @@ Future<void> placeOrder(String? tranId) async {
   }
   
   final selectedMosque = context.read<MosqueProvider>().selectedMosque;
-  request.fields[ADD_ID] = selectedMosque != null ? selectedMosque.id! : "999";
+  request.fields[ADD_ID] = selectedMosque != null ? selectedMosque.id! : "9999";
   if (IS_LOCAL_PICKUP == "1") {
     request.fields[LOCAL_PICKUP] = isStorePickUp == "true" ? "1" : "0";
   }
@@ -4379,7 +4379,7 @@ Future<void> initiateSkipCashPayment(
     'product_variant_id': cartItem.varientId,
     'quantity': cartItem.qty,
     'user_id': userProvider.userId,
-'address_id': selectedMosque?.id ?? '999',
+'address_id': selectedMosque?.id ?? '9999',
     'local_pickup': isStorePickUp == "true" ? '1' : '0',
     'mosque_name': 'Default Mosque',
     'delivery_date': selDate,
@@ -5904,7 +5904,7 @@ Widget address() {
         USER_ID: context.read<UserProvider>().userId,
         ADD_ID: (selectedMosque?.id?.isNotEmpty == true)
             ? selectedMosque!.id
-            : "999",
+            : "9999",
       };
       await apiBaseHelper.postAPICall(checkCartDelApi, parameter).then(
         (getdata) {
